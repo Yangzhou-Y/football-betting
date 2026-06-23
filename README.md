@@ -1,158 +1,162 @@
-# FootballBetting — 基于区块链的足球竞猜 DApp
+# FootballBetting — 链上足球竞猜 DApp
 
-使用 Solidity 智能合约实现的世界杯足球竞猜系统。用户使用 ETH 对比赛结果（胜/平/负）进行预测，猜对者按比例瓜分奖池。
+世界杯足球竞猜系统，使用 **USDT** 投注，Parimutuel 奖池分配。合约部署在 **Conflux eSpace 测试网**，前端托管于 **Vercel**。
+
+## 在线访问
+
+**[football-betting-mu.vercel.app](https://football-betting-mu.vercel.app/)**
 
 ## 项目结构
 
 ```
 football-betting/
 ├── contracts/
-│   └── FootballBetting.sol    # 智能合约（Solidity）
+│   ├── FootballBetting.sol      # 核心合约（USDT 支付 / 多管理员 / Gas 优化）
+│   └── MockERC20.sol            # 本地测试用 ERC-20（18 位小数）
 ├── scripts/
-│   ├── deploy.ts              # 部署脚本（自动保存地址到 deployments/）
-│   └── interact.ts            # 交互演示脚本（自动读取部署地址）
+│   ├── deploy.ts                # 部署脚本（自动部署 MockERC20 或读取 faucet USDT）
+│   ├── interact.ts              # 批量创建 10 场比赛
+│   ├── admin.ts                 # 管理员管理（添加/移除/查看）
+│   ├── check.ts                 # 链上状态检查
+│   └── test-bet.ts              # 测试投注脚本
 ├── test/
-│   └── FootballBetting.test.ts # 48 个测试用例
-├── deployments/               # 部署记录（自动生成，提交到 git）
-├── hardhat.config.ts          # Hardhat 配置
-├── package.json               # 依赖 + npm 快捷命令
-└── .env.example               # 环境变量模板
+│   └── FootballBetting.test.ts  # 完整测试套件
+├── frontend/                    # Next.js 前端
+│   └── src/
+│       ├── app/                 # 页面路由
+│       │   ├── page.tsx         # 首页（热门赛事 / 即将开始）
+│       │   ├── matches/         # 赛事列表 / 详情
+│       │   ├── my-bets/         # 我的竞猜
+│       │   ├── leaderboard/     # 排行榜
+│       │   └── admin/           # 管理后台
+│       ├── hooks/               # 自定义 Hooks（合约读写 / 投注 / 排行榜）
+│       ├── lib/                 # 配置 / 类型 / i18n / ABI / 工具函数
+│       └── components/          # UI 组件
+├── deployments/                 # 硬帽部署记录（自动生成）
+└── hardhat.config.ts            # Hardhat 配置
 ```
+
+## 合约信息（Conflux eSpace 测试网）
+
+| 项目 | 地址 |
+|---|---|
+| FootballBetting | `0x8A60409F40fEDFE7D07D61866757899F2fE35B63` |
+| Faucet USDT | `0x7d682e65efc5c13bf4e394b8f376c48e6bae0355` |
+| Chain ID | 71 |
+| RPC | `https://evmtestnet.confluxrpc.com` |
+| 水龙头 | [efaucet.confluxnetwork.org](https://efaucet.confluxnetwork.org) |
+| 区块链浏览器 | [evmtestnet.confluxscan.io](https://evmtestnet.confluxscan.io) |
 
 ## 快速开始
 
 ```bash
-# 1. 安装依赖
+# 安装依赖
 npm install
 
-# 2. 编译合约（生成 typechain-types）
+# 编译合约
 npm run compile
 
-# 3. 跑测试（48 个用例，含 Gas 消耗报告）
+# 运行测试
 npm run test
 
-# 4. 启动本地链（终端 A — 保持运行）
+# 启动本地链（终端 A）
 npm run node
 
-# 5. 部署合约到本地链（终端 B）
+# 部署到本地链（终端 B）
 npm run deploy
 
-# 6. 运行交互演示（终端 B）
+# 创建比赛（终端 B）
 npm run interact
 ```
 
-## npm 命令
-
-| 命令 | 说明 |
-|---|---|
-| `npm run compile` | 编译 Solidity 合约 + 生成 TypeScript 类型 |
-| `npm run test` | 运行全部测试 + Gas 消耗报告 |
-| `npm run test:gas` | 同上（显式启用 Gas 报告） |
-| `npm run test:trace` | 运行测试 + 出错时显示 Solidity 调用栈 |
-| `npm run node` | 启动 Hardhat 本地链（监听 127.0.0.1:8545） |
-| `npm run deploy` | 部署到本地链 |
-| `npm run interact` | 交互演示（创建→投注→结算→领奖 完整流程） |
-| `npm run clean` | 清理编译产物 |
-| `npm run compile:force` | 强制重新编译 |
-
-## 部署到 Sepolia 测试网
-
-### 1. 获取资源
-
-| 需要什么 | 去哪里获取 |
-|---|---|
-| Sepolia RPC URL | [infura.io](https://infura.io) 或 [alchemy.com](https://alchemy.com) 免费注册 |
-| 测试 ETH | [sepoliafaucet.com](https://sepoliafaucet.com) 或 Google "Sepolia faucet" |
-| 私钥 | MetaMask 钱包 → 账户详情 → 导出私钥 |
-
-### 2. 配置 .env
+### 前端开发
 
 ```bash
-# 复制模板
-cp .env.example .env
-
-# 编辑 .env 填入真实值
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/你的KEY
-PRIVATE_KEY=0x你的私钥（注意：绝对不能上传到 GitHub！）
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
 ```
 
-### 3. 部署
+## 部署到 Conflux 测试网
 
 ```bash
-npx hardhat run scripts/deploy.ts --network sepolia
-```
-
-部署成功后合约地址会保存到 `deployments/sepolia.json`。
-
-### 4. 验证
-
-```bash
-# 交互演示（自动读取 deployments/sepolia.json）
-npx hardhat run scripts/interact.ts --network sepolia
-```
-
-## 部署到以太坊主网
-
-> ⚠️ **主网使用真实 ETH，部署成本约几百~几千美元。务必先在 Sepolia 验证所有功能！**
-
-```bash
-# 编辑 .env 填入主网 RPC URL 和私钥
-MAINNET_RPC_URL=https://mainnet.infura.io/v3/你的KEY
+# .env 配置
 PRIVATE_KEY=0x你的私钥
+CONFLUX_TESTNET_RPC_URL=https://evmtestnet.confluxrpc.com
+USDT_ADDRESS=0x7d682e65efc5c13bf4e394b8f376c48e6bae0355
 
-# 部署
-npx hardhat run scripts/deploy.ts --network mainnet
+# 部署合约
+npx hardhat run scripts/deploy.ts --network confluxTestnet
+
+# 创建比赛
+npx hardhat run scripts/interact.ts --network confluxTestnet
 ```
+
+部署后合约地址会自动同步到 `frontend/src/lib/deployments/confluxTestnet.json`，Vercel 重新构建后前端自动指向新合约。
+
+## 管理员操作
+
+```bash
+# 查看管理员
+ADMIN_ACTION=list npx hardhat run scripts/admin.ts --network confluxTestnet
+
+# 添加管理员
+ADMIN_ACTION=add ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --network confluxTestnet
+
+# 移除管理员
+ADMIN_ACTION=remove ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --network confluxTestnet
+```
+
+部署时自动添加的管理员：
+- `0x69a44E15f5718853e757866D000a98141D49da0D`
+- `0x914fAfB682e62638351699fe1c228Bc6Fd2E516E`
 
 ## 合约功能
 
 | 功能 | 函数 | 调用者 |
 |---|---|---|
-| 创建赛事 | `createMatch(home, away, startTime, deadline, minBet, maxBet)` | 管理员 |
+| 创建赛事 | `createMatch(name, home, away, start, deadline, minBet, maxBet, allowDraw)` | 管理员 |
 | 开放投注 | `openMatch(matchId)` | 管理员 |
 | 关闭投注 | `closeMatch(matchId)` | 管理员 |
+| 自动封盘 | `autoClose(matchId)` | 任何人 |
+| 删除赛事 | `deleteMatch(matchId)` | 管理员 |
 | 录入比分 | `recordResult(matchId, homeScore, awayScore)` | 管理员 |
-| 投注 | `placeBet(matchId, result) + msg.value` | 任何人 |
-| 领奖 | `claimReward(matchId)` | 任何人 |
-| 提手续费 | `withdrawFee()` | 管理员 |
-| 查看比赛 | `getMatch(matchId)` `getAllMatches()` | 任何人（免费） |
-| 预览奖励 | `previewReward(matchId, user)` | 任何人（免费） |
+| 重新结算 | `reopenMatch(matchId)` | 管理员 |
+| USDT 投注 | `placeBet(matchId, betOn, amount)` | 任何人 |
+| 取消投注 | `cancelBet(matchId)` | 任何人 |
+| 领取奖励 | `claimReward(matchId)` | 任何人 |
+| 提取手续费 | `withdrawFee()` | 管理员 |
+| 暂停/恢复 | `pause()` / `unpause()` | 管理员 |
+| 管理员管理 | `addAdmin()` / `removeAdmin()` | Owner |
 
-## Gas 优化
+## Gas 优化（第四轮）
 
-合约经过三轮 Gas 优化，主要函数平均降低 26-41%：
+本轮优化引入 **36 个自定义错误** 替代 require 字符串、`_addToPool`/`_removeFromPool` 使用 `unchecked` 池子运算、修复 `placeBet` 切换选项时的双写 SSTORE。
 
-| 函数 | 优化前 | 优化后 | 节省 |
-|---|---|---|---|
-| createMatch | 168,675 | 124,999 | -26% |
-| placeBet | 140,710 | 96,752 | -31% |
-| claimReward | 78,846 | 50,356 | -36% |
-| openMatch | 47,134 | 28,013 | -41% |
-| recordResult | 75,983 | 55,727 | -27% |
-| 合约部署 | 2,059,329 | 1,869,435 | -9% |
+| 优化 | 效果 |
+|---|---|
+| 自定义错误 | 部署 Gas -5~10%，每次 revert -200~300 gas |
+| unchecked 池子运算 | 每次投注 -100~400 gas |
+| 双写修复 | 切换投注选项时 -5000 gas |
 
-优化手段：结构体紧凑排列、uint128/uint64 替代 uint256、string→bytes32、unchecked 算术、删除冗余零赋值。
+历史优化：结构体紧凑排列（-40~50%）、uint128 替代 uint256（-30%）、bytes32 替代 string（-15%）、删除零赋值（-8%）。
 
 ## 技术栈
 
-- **Solidity 0.8.21** — 智能合约语言
-- **Hardhat** — 开发框架（编译、测试、部署、本地节点）
-- **ethers.js v6** — 区块链交互库
-- **TypeScript** — 脚本和测试
-- **Mocha + Chai** — 测试框架
-- **hardhat-gas-reporter** — Gas 消耗分析
+- **Solidity 0.8.21** + Hardhat — 智能合约
+- **Next.js 15** + TypeScript — 前端
+- **wagmi v3** + **RainbowKit** + **viem** — 钱包连接与合约交互
+- **Tailwind CSS** — 样式
+- **TanStack Query** — 数据缓存
+- **ethers.js v6** — 脚本与测试
 
 ## 安全
 
-- `onlyOwner` 修饰器 — 管理员功能权限隔离
-- `noReentrancy` 修饰器 — 防重入攻击（互斥锁模式）
-- Checks-Effects-Interactions — 状态更新在外部转账之前
+- `onlyOwner` 修饰器 — 管理员 + 多管理员权限隔离
+- `noReentrancy` 修饰器 — 重入保护
+- `whenNotPaused` 修饰器 — 紧急暂停
+- Checks-Effects-Interactions — 状态更新先于外部调用
 - Solidity 0.8.x 内置溢出检查
-- `settled` 标记双重防结算
-- 每用户每场限投一次
-
-## 开发环境要求
-
-- Node.js >= 18
-- npm >= 9
-- Git（可选）
+- `settled` 标记防重复结算
+- 自定义错误 — 精确匹配 revert 原因，前端友好提示
+- 无 `receive()`/`fallback()` — 误发原生币自动 revert
