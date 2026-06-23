@@ -1,6 +1,6 @@
 {
-  "contractAddress": "0x00540Ba15376BC87b3181eaE9D7A637D81782a9D",
+  "contractAddress": "0x8A60409F40fEDFE7D07D61866757899F2fE35B63",
   "usdtAddress": "0x7d682e65efc5c13bf4e394b8f376c48e6bae0355",
   "platformFeeRate": 200,
-  "deployBlock": 255007985
+  "deployBlock": 255010615
 }
