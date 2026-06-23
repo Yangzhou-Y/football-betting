@@ -58,7 +58,7 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-3 h-14 flex items-center justify-between">
         {/* Left: Logo + desktop nav */}
         <div className="flex items-center gap-2">
-          <Link href="/" className="text-base sm:text-lg font-bold text-blue-600 whitespace-nowrap">
+          <Link href="/" className="text-sm sm:text-lg font-bold text-blue-600 whitespace-nowrap shrink-0">
             {t("app.title")}
           </Link>
           {/* Desktop links */}
@@ -77,7 +77,7 @@ export function Navbar() {
         </div>
 
         {/* Right: balance, role, lang, connect, hamburger */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           {mounted && isConnected && usdtBalance !== undefined && (
             <span className="hidden sm:inline text-xs text-green-800 bg-green-100 px-2 py-0.5 rounded-lg border border-green-300 font-semibold whitespace-nowrap">
               {formatUSDT(usdtBalance as bigint, 4)} USDT
@@ -98,7 +98,9 @@ export function Navbar() {
             <option value="zh">中</option>
             <option value="en">EN</option>
           </select>
-          <ConnectButton showBalance={false} accountStatus="address" chainStatus="icon" />
+          <span className="max-sm:[&_[data-rk]]:!max-w-[130px]">
+            <ConnectButton showBalance={false} accountStatus="address" chainStatus="none" />
+          </span>
           {/* Hamburger — visible only on mobile */}
           <button
             onClick={() => setMenuOpen(true)}
