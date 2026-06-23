@@ -81,7 +81,7 @@ function CreateMatchForm({ contractAddress }: { contractAddress: string }) {
   });
   const [minBet, setMinBet] = useState("0.01");
   const [maxBet, setMaxBet] = useState("");
-  const [allowDraw, setAllowDraw] = useState(true);
+  const [allowDraw, setAllowDraw] = useState(false);
 
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, error: receiptError } = useWaitForTxAndRefresh(hash);
@@ -196,16 +196,19 @@ function CreateMatchForm({ contractAddress }: { contractAddress: string }) {
         </div>
       </div>
 
-      <label className="flex items-center gap-2 my-3 text-sm text-slate-600 cursor-pointer select-none">
-        <input
-          type="checkbox"
-          checked={allowDraw}
-          onChange={(e) => setAllowDraw(e.target.checked)}
-          disabled={loading}
-          className="w-4 h-4 rounded accent-blue-600"
-        />
-        {t("admin.allowDrawHint")}
-      </label>
+      <div className="my-3">
+        <p className="text-xs text-slate-500 mb-1">{t("admin.allowDraw")}</p>
+        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={allowDraw}
+            onChange={(e) => setAllowDraw(e.target.checked)}
+            disabled={loading}
+            className="w-4 h-4 rounded accent-blue-600"
+          />
+          {t("admin.allowDrawHint")}
+        </label>
+      </div>
 
       {displayError && (
         <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
