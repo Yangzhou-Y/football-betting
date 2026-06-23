@@ -84,7 +84,7 @@ export function Navbar() {
           />
           {mounted && isConnected && usdtBalance !== undefined && (
             <span className="hidden md:inline text-xs text-green-800 bg-green-100 px-2 py-0.5 rounded-lg border border-green-300 font-semibold whitespace-nowrap">
-              {formatUSDT(usdtBalance as bigint)} USDT
+              {formatUSDT(usdtBalance as bigint, 4)} USDT
             </span>
           )}
           {mounted && isConnected && !isAdminLoading && (
