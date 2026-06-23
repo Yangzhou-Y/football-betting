@@ -17,6 +17,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "nav.myBets": "我的竞猜",
     "nav.leaderboard": "排行榜",
     "nav.admin": "管理",
+    "nav.menu": "菜单",
     "nav.connect": "连接钱包",
 
     // 角色
@@ -328,6 +329,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "nav.myBets": "My Bets",
     "nav.leaderboard": "Leaderboard",
     "nav.admin": "Admin",
+    "nav.menu": "Menu",
     "nav.connect": "Connect Wallet",
 
     // Role
