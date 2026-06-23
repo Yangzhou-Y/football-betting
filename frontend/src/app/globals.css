@@ -60,6 +60,13 @@ input[type="number"]::-webkit-outer-spin-button {
 @keyframes claim { 0%,100% { box-shadow:0 0 4px rgba(16,185,129,.6),0 0 8px rgba(16,185,129,.3); } 50% { box-shadow:0 0 8px rgba(16,185,129,.9),0 0 16px rgba(16,185,129,.5),0 0 24px rgba(4,120,87,.3); } }
 .animate-claim { animation: claim 1s ease-in-out infinite; }
 
+/* Mobile drawer slide-in */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in { animation: slideInRight 0.2s ease-out; }
+
 /* 逐级延迟 — 从上到下依次落下 */
 .animate-page-enter > *:nth-child(1)  { animation-delay: 0.00s; }
 .animate-page-enter > *:nth-child(2)  { animation-delay: 0.04s; }

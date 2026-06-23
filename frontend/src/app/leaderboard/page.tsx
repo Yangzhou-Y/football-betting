@@ -95,67 +95,75 @@ export default function LeaderboardPage() {
 
       {!isLoading && leaderboard.length > 0 && (
         <>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="text-center px-4 py-3 w-12">#</th>
-                    <th className="text-left px-4 py-3">{t("leaderboard.address")}</th>
-                    <th className="text-center px-3 py-3 hidden sm:table-cell">{t("leaderboard.totalBets")}</th>
-                    <th className="text-center px-3 py-3">{t("leaderboard.wins")}</th>
-                    <th className="text-center px-3 py-3 hidden md:table-cell">{t("leaderboard.winRate")}</th>
-                    <th className="text-right px-3 py-3 hidden md:table-cell">{t("leaderboard.wagered")}</th>
-                    <th className="text-right px-3 py-3">{t("leaderboard.profit")}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {leaderboard.map((entry, i) => {
-                    const isMe = address && entry.address === address.toLowerCase();
-                    return (
-                      <tr
-                        key={entry.address}
-                        className={`${isMe ? "bg-blue-50" : i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100 transition-colors`}
-                      >
-                        <td className="text-center px-4 py-3">
-                          <RankBadge rank={i} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`font-mono text-xs ${isMe ? "text-blue-700 font-semibold" : "text-slate-700"}`}>
-                            {entry.shortAddress}
-                          </span>
-                          {isMe && (
-                            <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-700 font-medium">
-                              YOU
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-center px-3 py-3 text-slate-600 hidden sm:table-cell">
-                          {entry.totalBets}
-                        </td>
-                        <td className="text-center px-3 py-3">
-                          <span className="font-medium text-slate-700">{entry.wins}</span>
-                        </td>
-                        <td className="text-center px-3 py-3 hidden md:table-cell">
-                          <span className={`${entry.winRate >= 50 ? "text-green-600" : entry.winRate > 0 ? "text-orange-500" : "text-slate-400"}`}>
-                            {entry.winRate}%
-                          </span>
-                        </td>
-                        <td className="text-right px-3 py-3 text-slate-600 hidden md:table-cell">
-                          {formatUSDT(entry.totalWagered)}
-                        </td>
-                        <td className="text-right px-3 py-3 font-mono text-xs">
-                          <ProfitDisplay profit={entry.profit} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          {/* Desktop table */}
+          <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-center px-4 py-3 w-12">#</th>
+                  <th className="text-left px-4 py-3">{t("leaderboard.address")}</th>
+                  <th className="text-center px-3 py-3">{t("leaderboard.totalBets")}</th>
+                  <th className="text-center px-3 py-3">{t("leaderboard.wins")}</th>
+                  <th className="text-center px-3 py-3 hidden md:table-cell">{t("leaderboard.winRate")}</th>
+                  <th className="text-right px-3 py-3 hidden md:table-cell">{t("leaderboard.wagered")}</th>
+                  <th className="text-right px-3 py-3">{t("leaderboard.profit")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {leaderboard.map((entry, i) => {
+                  const isMe = address && entry.address === address.toLowerCase();
+                  return (
+                    <tr
+                      key={entry.address}
+                      className={`${isMe ? "bg-blue-50" : i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100 transition-colors`}
+                    >
+                      <td className="text-center px-4 py-3"><RankBadge rank={i} /></td>
+                      <td className="px-4 py-3">
+                        <span className={`font-mono text-xs ${isMe ? "text-blue-700 font-semibold" : "text-slate-700"}`}>
+                          {entry.shortAddress}
+                        </span>
+                        {isMe && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-700 font-medium">YOU</span>}
+                      </td>
+                      <td className="text-center px-3 py-3 text-slate-600">{entry.totalBets}</td>
+                      <td className="text-center px-3 py-3"><span className="font-medium text-slate-700">{entry.wins}</span></td>
+                      <td className="text-center px-3 py-3 hidden md:table-cell">
+                        <span className={`${entry.winRate >= 50 ? "text-green-600" : entry.winRate > 0 ? "text-orange-500" : "text-slate-400"}`}>{entry.winRate}%</span>
+                      </td>
+                      <td className="text-right px-3 py-3 text-slate-600 hidden md:table-cell">{formatUSDT(entry.totalWagered)}</td>
+                      <td className="text-right px-3 py-3 font-mono text-xs"><ProfitDisplay profit={entry.profit} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
-          <p className="text-xs text-slate-400 text-center">{t("leaderboard.rankingBy")}</p>
+          {/* Mobile card list */}
+          <div className="sm:hidden space-y-2">
+            {leaderboard.map((entry, i) => {
+              const isMe = address && entry.address === address.toLowerCase();
+              return (
+                <div key={entry.address} className={`rounded-xl p-3 border ${isMe ? "bg-blue-50 border-blue-200" : "bg-white border-slate-200"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <RankBadge rank={i} />
+                      <span className={`font-mono text-xs ${isMe ? "text-blue-700 font-semibold" : "text-slate-700"}`}>
+                        {entry.shortAddress}
+                      </span>
+                      {isMe && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-700 font-medium">YOU</span>}
+                    </div>
+                    <ProfitDisplay profit={entry.profit} />
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                    <span>{t("leaderboard.totalBets")}: <b className="text-slate-700">{entry.totalBets}</b></span>
+                    <span>{t("leaderboard.wins")}: <b className="text-slate-700">{entry.wins}</b></span>
+                    <span>{t("leaderboard.winRate")}: <b className={entry.winRate >= 50 ? "text-green-600" : entry.winRate > 0 ? "text-orange-500" : "text-slate-400"}>{entry.winRate}%</b></span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-400 text-center mt-4">{t("leaderboard.rankingBy")}</p>
         </>
       )}
 

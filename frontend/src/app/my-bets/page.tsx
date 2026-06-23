@@ -63,7 +63,7 @@ export default function MyBetsPage() {
     <div className="space-y-6" key={address}>
       <h1 className="text-xl font-bold">{t("myBets.title")}</h1>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <StatCard label={t("myBets.totalBets")} value={String(matchIds.length)} />
         <StatCard label={t("myBets.wins")} value={String(winCount)} />
         <StatCard label={t("myBets.winRate")} value={matchIds.length > 0 ? `${((winCount / matchIds.length) * 100).toFixed(1)}%` : "-"} />
@@ -74,7 +74,8 @@ export default function MyBetsPage() {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
@@ -92,7 +93,7 @@ export default function MyBetsPage() {
                 return (
                   <tr key={i} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      {match && (match.startTime ?? 0n) > 0n ? (
+                      {match && match.startTime > 0n ? (
                         <Link href={`/matches/${mid}`} className="text-blue-600 hover:underline">
                           {match.matchName && match.matchName !== "0x0000000000000000000000000000000000000000000000000000000000000000" && (
                             <div className="text-[10px] text-slate-400">{translateName(decodeTeamName(match.matchName), lang)}</div>
@@ -124,7 +125,7 @@ export default function MyBetsPage() {
                       {claimed[i] ? "✅"
                         : match?.settled
                           ? betOns[i] === match.result
-                            ? <span className="text-green-500 text-lg">💰</span>
+                            ? <span className="text-green-500 text-lg">{"💰"}</span>
                             : "✅"
                           : "⏳"}
                     </td>
@@ -134,6 +135,54 @@ export default function MyBetsPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile card list */}
+      <div className="sm:hidden space-y-3">
+        {matchIds.map((mid, i) => {
+          const match = matchList.find((_m, j) => j + 1 === Number(mid));
+          const deleted = !match || match.startTime === 0n;
+          return (
+            <div key={i} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {!deleted ? (
+                    <Link href={`/matches/${mid}`} className="text-blue-600 hover:underline text-sm">
+                      <span className="inline-flex items-center gap-1.5">
+                        <TeamNameDisplay hex={match!.homeTeam} />
+                        <span className="text-slate-400 text-xs">VS</span>
+                        <TeamNameDisplay hex={match!.awayTeam} flagAfter />
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="text-slate-400 text-sm">{t("common.matchNum")}{String(mid)} {match ? t("myBets.deleted") : ""}</span>
+                  )}
+                </div>
+                <div className="text-xs">
+                  {claimed[i] ? "✅"
+                    : match?.settled
+                      ? betOns[i] === match.result
+                        ? <span className="text-green-500">{"💰"}</span>
+                        : "✅"
+                      : "⏳"}
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>{t("myBets.table.prediction")}: <b>{t(RESULT_KEYS[betOns[i] as Result])}</b></span>
+                <AmountDisplay amount={amounts[i]} />
+              </div>
+              {match && (
+                <div className="mt-1 text-xs text-slate-500">
+                  {match.settled && (
+                    betOns[i] === match.result
+                      ? <span className="text-green-600">{t("common.correct")}</span>
+                      : <span className="text-red-500">{t("common.incorrect")}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
