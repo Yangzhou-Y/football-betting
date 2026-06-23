@@ -12,6 +12,7 @@ import * as path from "path";
 const PLATFORM_FEE_RATE = 200;
 const ADDITIONAL_ADMINS: string[] = [
   "0x69a44E15f5718853e757866D000a98141D49da0D",
+  "0x914fAfB682e62638351699fe1c228Bc6Fd2E516E",
 ];
 
 /** 打印步骤分隔线 */
