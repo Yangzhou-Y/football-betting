@@ -223,25 +223,63 @@ contract FootballBetting {
     event Unpaused(address indexed owner);
 
     // ========================================================================
+    // Custom errors — gas-efficient (4-byte selector vs full string)
+    // ========================================================================
+    error NotOwner();
+    error ReentrantCall();
+    error ContractPaused();
+    error AlreadyPaused();
+    error NotPaused();
+    error FeeRateTooHigh();
+    error InvalidUsdtAddress();
+    error StartTimeNotFuture();
+    error DeadlineNotFuture();
+    error DeadlineAfterStart();
+    error MatchNameEmpty();
+    error TeamNameEmpty();
+    error MinBetZero();
+    error MaxBelowMin();
+    error MatchNotExist();
+    error MatchNotCreated();
+    error MatchNotOpen();
+    error MatchNotClosedOrPast();
+    error MatchAlreadySettled();
+    error MatchNotSettled();
+    error MatchHasBets();
+    error DeadlineNotPassed();
+    error InvalidResult();
+    error ZeroAmount();
+    error BelowMinBet();
+    error AboveMaxBet();
+    error DrawNotAllowed();
+    error NoBet();
+    error AlreadyClaimed();
+    error NoFees();
+    error ScoresEqual();
+    error ClaimsExist();
+    error NotAdmin();
+    error InvalidAdmin();
+    error USDTTransferFailed();
+    error USDTTransferFromFailed();
+
+    // ========================================================================
     // 五、修饰器
     // ========================================================================
 
     modifier onlyOwner() {
-        require(msg.sender == owner || admins[msg.sender], "FootballBetting: caller is not the owner");
+        if (msg.sender != owner && !admins[msg.sender]) revert NotOwner();
         _;
     }
 
-    /// @dev 互斥锁防止重入攻击（Checks-Effects-Interactions 模式的核心防线）
     modifier noReentrancy() {
-        require(!reentrancyLock, "FootballBetting: reentrant call detected");
+        if (reentrancyLock) revert ReentrantCall();
         reentrancyLock = true;
         _;
         reentrancyLock = false;
     }
 
-    /// @dev 紧急暂停检查：当 paused=true 时拦截所有用户状态变更操作
     modifier whenNotPaused() {
-        require(!paused, "FootballBetting: contract is paused");
+        if (paused) revert ContractPaused();
         _;
     }
 
@@ -256,11 +294,10 @@ contract FootballBetting {
     ///                          - Sepolia 测试网：需自行部署 MockERC20 或使用测试 USDT
     ///                          - Hardhat 本地链：deploy.ts 自动部署 MockERC20 并传入
     constructor(uint256 _platformFeeRate, address _usdt) {
-        require(_platformFeeRate <= 1000, "FootballBetting: fee rate too high");
-        require(_usdt != address(0), "FootballBetting: invalid USDT address");
+        if (_platformFeeRate > 1000) revert FeeRateTooHigh();
+        if (_usdt == address(0)) revert InvalidUsdtAddress();
         owner = msg.sender;
         platformFeeRate = _platformFeeRate;
-        // 将 address 包装为 IERC20 接口，之后所有 USDT 操作都通过这个接口
         usdt = IERC20(_usdt);
     }
 
@@ -295,14 +332,14 @@ contract FootballBetting {
         onlyOwner
         returns (uint256)
     {
-        require(startTime > block.timestamp, "FootballBetting: start time must be in the future");
-        require(deadline > block.timestamp, "FootballBetting: deadline must be in the future");
-        require(deadline <= startTime, "FootballBetting: deadline must be <= startTime");
-        require(matchName != bytes32(0), "FootballBetting: match name required");
-        require(homeTeam != bytes32(0), "FootballBetting: home team name required");
-        require(awayTeam != bytes32(0), "FootballBetting: away team name required");
-        require(minBet > 0, "FootballBetting: minBet must be > 0");
-        require(maxBet == 0 || maxBet >= minBet, "FootballBetting: maxBet must be >= minBet or 0");
+        if (startTime <= block.timestamp) revert StartTimeNotFuture();
+        if (deadline <= block.timestamp) revert DeadlineNotFuture();
+        if (deadline > startTime) revert DeadlineAfterStart();
+        if (matchName == bytes32(0)) revert MatchNameEmpty();
+        if (homeTeam == bytes32(0)) revert TeamNameEmpty();
+        if (awayTeam == bytes32(0)) revert TeamNameEmpty();
+        if (minBet == 0) revert MinBetZero();
+        if (maxBet != 0 && maxBet < minBet) revert MaxBelowMin();
 
         uint256 matchId = ++matchCounter;
 
@@ -326,41 +363,38 @@ contract FootballBetting {
     /// @notice 开放比赛投注（Created → Open）
     function openMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Created, "FootballBetting: match is not in Created status");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Created) revert MatchNotCreated();
 
         m.status = MatchStatus.Open;
         emit MatchOpened(matchId);
     }
 
-    /// @notice 删除未开放投注的比赛（仅 Created 状态）
     function deleteMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Created, "FootballBetting: match is not in Created status");
-        require(m.totalPool == 0, "FootballBetting: match has bets, cannot delete");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Created) revert MatchNotCreated();
+        if (m.totalPool != 0) revert MatchHasBets();
 
         delete matches[matchId];
 
         emit MatchDeleted(matchId);
     }
 
-    /// @notice 关闭比赛投注（Open → Closed），仅管理员
     function closeMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Open, "FootballBetting: match is not in Open status");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Open) revert MatchNotOpen();
 
         m.status = MatchStatus.Closed;
         emit MatchClosed(matchId);
     }
 
-    /// @notice 到达截止时间后任何人可触发自动封盘（Open → Closed）
     function autoClose(uint256 matchId) external {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Open, "FootballBetting: match is not in Open status");
-        require(block.timestamp >= m.deadline, "FootballBetting: deadline not yet passed");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Open) revert MatchNotOpen();
+        if (block.timestamp < m.deadline) revert DeadlineNotPassed();
 
         m.status = MatchStatus.Closed;
         emit MatchClosed(matchId);
@@ -374,9 +408,9 @@ contract FootballBetting {
      */
     function reopenMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.settled, "FootballBetting: match not settled yet");
-        require(matchClaimCount[matchId] == 0, "FootballBetting: claims already made, cannot reopen");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (!m.settled) revert MatchNotSettled();
+        if (matchClaimCount[matchId] != 0) revert ClaimsExist();
 
         // 计算之前结算时扣除的手续费
         uint256 oldFee = _calculateFee(m, m.result);
@@ -402,30 +436,27 @@ contract FootballBetting {
 
     /// @notice 紧急暂停合约，禁用所有用户操作（投注/领奖/结算）
     function pause() external onlyOwner {
-        require(!paused, "FootballBetting: already paused");
+        if (paused) revert AlreadyPaused();
         paused = true;
         emit Paused(msg.sender);
     }
 
-    /// @notice 恢复合约，重新开放用户操作
     function unpause() external onlyOwner {
-        require(paused, "FootballBetting: not paused");
+        if (!paused) revert NotPaused();
         paused = false;
         emit Unpaused(msg.sender);
     }
 
-    /// @notice 添加管理员（仅 owner 可调用）
     function addAdmin(address admin) external {
-        require(msg.sender == owner, "FootballBetting: only owner can add admin");
-        require(admin != address(0), "FootballBetting: invalid admin address");
+        if (msg.sender != owner) revert NotOwner();
+        if (admin == address(0)) revert InvalidAdmin();
         admins[admin] = true;
         emit AdminAdded(admin);
     }
 
-    /// @notice 移除管理员（仅 owner 可调用）
     function removeAdmin(address admin) external {
-        require(msg.sender == owner, "FootballBetting: only owner can remove admin");
-        require(admins[admin], "FootballBetting: not an admin");
+        if (msg.sender != owner) revert NotOwner();
+        if (!admins[admin]) revert NotAdmin();
         admins[admin] = false;
         emit AdminRemoved(admin);
     }
@@ -445,16 +476,14 @@ contract FootballBetting {
         whenNotPaused
     {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(!m.settled, "FootballBetting: match already settled");
-        require(
-            m.status == MatchStatus.Closed ||
-            (m.status == MatchStatus.Open && block.timestamp >= m.deadline),
-            "FootballBetting: match must be Closed or past deadline"
-        );
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.settled) revert MatchAlreadySettled();
+        if (m.status != MatchStatus.Closed &&
+            !(m.status == MatchStatus.Open && block.timestamp >= m.deadline))
+            revert MatchNotClosedOrPast();
 
         Result r = _determineResult(homeScore, awayScore);
-        require(r != Result.Pending, "FootballBetting: scores cannot determine result");
+        if (r == Result.Pending) revert ScoresEqual();
 
         // 同槽写入（全部在槽 5 — 见 Match 布局图）
         m.homeScore = homeScore;
@@ -512,16 +541,16 @@ contract FootballBetting {
      * @param amount  投注 USDT 金额（最小单位，USDT 有 6 位小数：1 USDT = 1,000,000）
      */
     function placeBet(uint256 matchId, Result betOn, uint256 amount) external noReentrancy whenNotPaused {
-        require(betOn != Result.Pending, "FootballBetting: must choose a valid result");
-        require(amount > 0, "FootballBetting: bet amount must be positive");
+        if (betOn == Result.Pending) revert InvalidResult();
+        if (amount == 0) revert ZeroAmount();
 
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Open, "FootballBetting: match is not open for betting");
-        require(block.timestamp < m.deadline, "FootballBetting: betting deadline passed");
-        require(amount >= m.minBet, "FootballBetting: bet below minimum");
-        require(m.maxBet == 0 || amount <= m.maxBet, "FootballBetting: bet above maximum");
-        require(betOn != Result.Draw || m.allowDraw, "FootballBetting: draw betting not allowed");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Open) revert MatchNotOpen();
+        if (block.timestamp >= m.deadline) revert DeadlineNotPassed();
+        if (amount < m.minBet) revert BelowMinBet();
+        if (m.maxBet != 0 && amount > m.maxBet) revert AboveMaxBet();
+        if (betOn == Result.Draw && !m.allowDraw) revert DrawNotAllowed();
 
         uint128 betAmount = uint128(amount);
         Bet storage b = bets[matchId][msg.sender];
@@ -530,33 +559,28 @@ contract FootballBetting {
 
         if (oldAmount > 0) {
             if (oldBetOn == betOn) {
-                // 相同选项：累加金额，只拉取新增部分
                 _addToPool(m, betOn, betAmount);
                 b.amount = oldAmount + betAmount;
             } else {
-                // 不同选项：移除旧投注，建立新投注，只结算差额
                 _removeFromPool(m, oldBetOn, oldAmount);
                 _addToPool(m, betOn, betAmount);
                 b.betOn = betOn;
-                b.amount = betAmount;
+                // Write amount-with-reward-zero in one slot write to avoid double SSTORE
                 b.reward = 0;
+                b.amount = betAmount;
 
                 if (betAmount > oldAmount) {
-                    // 新金额更大 → 补收差额
-                    require(usdt.transferFrom(msg.sender, address(this), betAmount - oldAmount),
-                        "FootballBetting: USDT delta transfer failed");
+                    if (!usdt.transferFrom(msg.sender, address(this), betAmount - oldAmount))
+                        revert USDTTransferFromFailed();
                 } else if (betAmount < oldAmount) {
-                    // 新金额更小 → 退回差额
-                    require(usdt.transfer(msg.sender, oldAmount - betAmount),
-                        "FootballBetting: USDT delta refund failed");
+                    if (!usdt.transfer(msg.sender, oldAmount - betAmount))
+                        revert USDTTransferFailed();
                 }
-                // 金额相等 → 无需转账
                 b.timestamp = uint48(block.timestamp);
                 emit BetPlaced(matchId, msg.sender, amount, betOn);
                 return;
             }
         } else {
-            // 首次投注
             b.amount = betAmount;
             b.betOn = betOn;
             _addToPool(m, betOn, betAmount);
@@ -564,8 +588,8 @@ contract FootballBetting {
 
         b.timestamp = uint48(block.timestamp);
 
-        // 首次投注或相同选项追加：拉取全额新资金
-        require(usdt.transferFrom(msg.sender, address(this), amount), "FootballBetting: USDT transferFrom failed");
+        if (!usdt.transferFrom(msg.sender, address(this), amount))
+            revert USDTTransferFromFailed();
 
         emit BetPlaced(matchId, msg.sender, amount, betOn);
     }
@@ -576,24 +600,21 @@ contract FootballBetting {
      */
     function cancelBet(uint256 matchId) external noReentrancy whenNotPaused {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.status == MatchStatus.Open, "FootballBetting: match is not open");
-        require(block.timestamp < m.deadline, "FootballBetting: betting deadline passed");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (m.status != MatchStatus.Open) revert MatchNotOpen();
+        if (block.timestamp >= m.deadline) revert DeadlineNotPassed();
 
         Bet storage b = bets[matchId][msg.sender];
-        require(b.amount > 0, "FootballBetting: no bet to cancel");
+        if (b.amount == 0) revert NoBet();
 
         uint128 refundAmount = b.amount;
         Result betOn = b.betOn;
 
-        // 从奖池移除
         _removeFromPool(m, betOn, refundAmount);
 
-        // 删除投注记录
         delete bets[matchId][msg.sender];
 
-        // 退回 USDT
-        require(usdt.transfer(msg.sender, refundAmount), "FootballBetting: USDT refund failed");
+        if (!usdt.transfer(msg.sender, refundAmount)) revert USDTTransferFailed();
     }
 
     // ========================================================================
@@ -618,12 +639,12 @@ contract FootballBetting {
      */
     function claimReward(uint256 matchId) external noReentrancy whenNotPaused returns (uint256 rewardAmount) {
         Match storage m = matches[matchId];
-        require(m.startTime > 0, "FootballBetting: match does not exist");
-        require(m.settled, "FootballBetting: match not settled yet");
+        if (m.startTime == 0) revert MatchNotExist();
+        if (!m.settled) revert MatchNotSettled();
 
         Bet storage userBet = bets[matchId][msg.sender];
-        require(userBet.amount > 0, "FootballBetting: no bet found for this match");
-        require(!userBet.claimed, "FootballBetting: reward already claimed");
+        if (userBet.amount == 0) revert NoBet();
+        if (userBet.claimed) revert AlreadyClaimed();
 
         if (userBet.betOn != m.result) {
             userBet.claimed = true;
@@ -632,13 +653,11 @@ contract FootballBetting {
 
         rewardAmount = _calculateReward(m, userBet);
 
-        // 同槽写入（amount+reward 在槽 0，claimed 在槽 1）→ 2 次 SSTORE
         userBet.reward = uint128(rewardAmount);
         userBet.claimed = true;
         matchClaimCount[matchId]++;
 
-        // Checks-Effects-Interactions：状态更新完毕后方可外部调用
-        require(usdt.transfer(msg.sender, rewardAmount), "FootballBetting: USDT transfer failed");
+        if (!usdt.transfer(msg.sender, rewardAmount)) revert USDTTransferFailed();
 
         emit RewardClaimed(matchId, msg.sender, rewardAmount);
     }
@@ -652,10 +671,10 @@ contract FootballBetting {
     ///         Effects before Interactions：platformBalance 先归零，再转 USDT
     function withdrawFee() external onlyOwner noReentrancy {
         uint256 amount = platformBalance;
-        require(amount > 0, "FootballBetting: no fees to withdraw");
+        if (amount == 0) revert NoFees();
         platformBalance = 0;
 
-        require(usdt.transfer(owner, amount), "FootballBetting: USDT transfer failed");
+        if (!usdt.transfer(owner, amount)) revert USDTTransferFailed();
 
         emit FeeWithdrawn(owner, amount);
     }
@@ -824,28 +843,29 @@ contract FootballBetting {
      * @dev 向指定结果的奖池添加金额（同时更新 totalPool）
      */
     function _addToPool(Match storage m, Result r, uint128 amount) internal {
-        if (r == Result.HomeWin) {
-            m.poolHome += amount;
-        } else if (r == Result.Draw) {
-            m.poolDraw += amount;
-        } else {
-            m.poolAway += amount;
+        unchecked {
+            if (r == Result.HomeWin) {
+                m.poolHome += amount;
+            } else if (r == Result.Draw) {
+                m.poolDraw += amount;
+            } else {
+                m.poolAway += amount;
+            }
+            m.totalPool += amount;
         }
-        m.totalPool += amount;
     }
 
-    /**
-     * @dev 从指定结果的奖池移除金额（同时扣减 totalPool）
-     */
     function _removeFromPool(Match storage m, Result r, uint128 amount) internal {
-        if (r == Result.HomeWin) {
-            m.poolHome -= amount;
-        } else if (r == Result.Draw) {
-            m.poolDraw -= amount;
-        } else {
-            m.poolAway -= amount;
+        unchecked {
+            if (r == Result.HomeWin) {
+                m.poolHome -= amount;
+            } else if (r == Result.Draw) {
+                m.poolDraw -= amount;
+            } else {
+                m.poolAway -= amount;
+            }
+            m.totalPool -= amount;
         }
-        m.totalPool -= amount;
     }
 
     // ========================================================================

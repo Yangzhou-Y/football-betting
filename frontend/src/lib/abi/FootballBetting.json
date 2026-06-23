@@ -1,20 +1,210 @@
 {
   "abi": [
     {
+      "inputs": [],
+      "name": "AboveMaxBet",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "AlreadyClaimed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "AlreadyPaused",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "BelowMinBet",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ClaimsExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ContractPaused",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DeadlineAfterStart",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DeadlineNotFuture",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DeadlineNotPassed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DrawNotAllowed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FeeRateTooHigh",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAdmin",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidResult",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidUsdtAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchAlreadySettled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchHasBets",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNameEmpty",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNotClosedOrPast",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNotCreated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNotOpen",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MatchNotSettled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MaxBelowMin",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MinBetZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoBet",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoFees",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotAdmin",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotPaused",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrantCall",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ScoresEqual",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "StartTimeNotFuture",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TeamNameEmpty",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "USDTTransferFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "USDTTransferFromFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ZeroAmount",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "_platformFeeRate",
-          "type": "uint256"
-        },
-        {
+          "indexed": true,
           "internalType": "address",
-          "name": "_usdt",
+          "name": "admin",
           "type": "address"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
+      "name": "AdminAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "AdminRemoved",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -266,6 +456,38 @@
       ],
       "name": "Unpaused",
       "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "addAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "admins",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     },
     {
       "inputs": [
@@ -1007,6 +1229,19 @@
         }
       ],
       "name": "recordResult",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "removeAdmin",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
