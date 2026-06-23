@@ -1,0 +1,30 @@
+{
+  "name": "football-betting",
+  "version": "1.0.0",
+  "description": "足球积分竞猜学习Demo - 基于Hardhat+TypeScript的区块链智能合约教学项目",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "test:gas": "REPORT_GAS=true npx hardhat test",
+    "test:trace": "npx hardhat test --show-stack-traces",
+    "node": "npx hardhat node",
+    "deploy": "npx hardhat run scripts/deploy.ts --network localhost",
+    "clean": "npx hardhat clean",
+    "interact": "npx hardhat run scripts/interact.ts --network localhost",
+    "compile:force": "npx hardhat compile --force"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "chai": "^4.4.1",
+    "hardhat": "^2.19.4",
+    "hardhat-gas-reporter": "^2.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

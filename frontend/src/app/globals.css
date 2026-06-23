@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: linear-gradient(180deg, #f0f7f0 0%, #f8fafc 50%, #f4f8f0 100%) fixed;
+  color: var(--foreground);
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, Helvetica, sans-serif;
+}
+
+/* RainbowKit 按钮适配 */
+[data-rk] button {
+  font-family: inherit;
+}
+
+/* 数字输入框去掉箭头 */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* 页面切换动画 — 窗帘式逐级下滑 */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter > * {
+  animation: pageEnter 0.3s ease-out both;
+}
+
+/* 弹窗淡入 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fire {
+  0%, 100% { box-shadow: 0 0 4px rgba(249,115,22,0.6), 0 0 8px rgba(249,115,22,0.3); }
+  50% { box-shadow: 0 0 8px rgba(249,115,22,0.8), 0 0 14px rgba(249,115,22,0.5), 0 0 20px rgba(234,88,12,0.3); }
+}
+.animate-fire { animation: fire 1.2s ease-in-out infinite; }
+@keyframes claim { 0%,100% { box-shadow:0 0 4px rgba(16,185,129,.6),0 0 8px rgba(16,185,129,.3); } 50% { box-shadow:0 0 8px rgba(16,185,129,.9),0 0 16px rgba(16,185,129,.5),0 0 24px rgba(4,120,87,.3); } }
+.animate-claim { animation: claim 1s ease-in-out infinite; }
+
+/* 逐级延迟 — 从上到下依次落下 */
+.animate-page-enter > *:nth-child(1)  { animation-delay: 0.00s; }
+.animate-page-enter > *:nth-child(2)  { animation-delay: 0.04s; }
+.animate-page-enter > *:nth-child(3)  { animation-delay: 0.08s; }
+.animate-page-enter > *:nth-child(4)  { animation-delay: 0.12s; }
+.animate-page-enter > *:nth-child(5)  { animation-delay: 0.16s; }
+.animate-page-enter > *:nth-child(6)  { animation-delay: 0.20s; }
+.animate-page-enter > *:nth-child(7)  { animation-delay: 0.24s; }
+.animate-page-enter > *:nth-child(8)  { animation-delay: 0.28s; }
+.animate-page-enter > *:nth-child(9)  { animation-delay: 0.32s; }
+.animate-page-enter > *:nth-child(10) { animation-delay: 0.36s; }
+.animate-page-enter > *:nth-child(11) { animation-delay: 0.40s; }
+.animate-page-enter > *:nth-child(12) { animation-delay: 0.44s; }
+.animate-page-enter > *:nth-child(13) { animation-delay: 0.48s; }
+.animate-page-enter > *:nth-child(14) { animation-delay: 0.52s; }
+.animate-page-enter > *:nth-child(15) { animation-delay: 0.56s; }
+.animate-page-enter > *:nth-child(16) { animation-delay: 0.60s; }
+.animate-page-enter > *:nth-child(17) { animation-delay: 0.64s; }
+.animate-page-enter > *:nth-child(18) { animation-delay: 0.68s; }
+.animate-page-enter > *:nth-child(19) { animation-delay: 0.72s; }
+.animate-page-enter > *:nth-child(20) { animation-delay: 0.76s; }

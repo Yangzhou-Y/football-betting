@@ -1,0 +1,1055 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_platformFeeRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_usdt",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum FootballBetting.Result",
+          "name": "betOn",
+          "type": "uint8"
+        }
+      ],
+      "name": "BetPlaced",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FeeWithdrawn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchClosed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "matchName",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "homeTeam",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "awayTeam",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minBet",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maxBet",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchDeleted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchOpened",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchReopened",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "homeScore",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "awayScore",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum FootballBetting.Result",
+          "name": "result",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "distributablePool",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "feeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MatchSettled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "autoClose",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "bets",
+      "outputs": [
+        {
+          "internalType": "uint128",
+          "name": "amount",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "reward",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint48",
+          "name": "timestamp",
+          "type": "uint48"
+        },
+        {
+          "internalType": "enum FootballBetting.Result",
+          "name": "betOn",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "claimed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "closeMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "matchName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "homeTeam",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "awayTeam",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minBet",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxBet",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "allowDraw",
+          "type": "bool"
+        }
+      ],
+      "name": "createMatch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "deleteMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllMatches",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "matchName",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "homeTeam",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "awayTeam",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolHome",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolDraw",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolAway",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "totalPool",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "minBet",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "maxBet",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint64",
+              "name": "startTime",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "deadline",
+              "type": "uint64"
+            },
+            {
+              "internalType": "enum FootballBetting.Result",
+              "name": "result",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum FootballBetting.MatchStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "homeScore",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "awayScore",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "settled",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowDraw",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct FootballBetting.Match[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getMatch",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "matchName",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "homeTeam",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "awayTeam",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolHome",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolDraw",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "poolAway",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "totalPool",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "minBet",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint128",
+              "name": "maxBet",
+              "type": "uint128"
+            },
+            {
+              "internalType": "uint64",
+              "name": "startTime",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "deadline",
+              "type": "uint64"
+            },
+            {
+              "internalType": "enum FootballBetting.Result",
+              "name": "result",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum FootballBetting.MatchStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "homeScore",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "awayScore",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "settled",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowDraw",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct FootballBetting.Match",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMatchCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserAllBets",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "matchIds",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "enum FootballBetting.Result[]",
+          "name": "betOns",
+          "type": "uint8[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "rewards",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "bool[]",
+          "name": "claimed",
+          "type": "bool[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserBet",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum FootballBetting.Result",
+          "name": "betOn",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "reward",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "claimed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "matchClaimCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "matchCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "matches",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "matchName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "homeTeam",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "awayTeam",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint128",
+          "name": "poolHome",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "poolDraw",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "poolAway",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "totalPool",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "minBet",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint128",
+          "name": "maxBet",
+          "type": "uint128"
+        },
+        {
+          "internalType": "uint64",
+          "name": "startTime",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "deadline",
+          "type": "uint64"
+        },
+        {
+          "internalType": "enum FootballBetting.Result",
+          "name": "result",
+          "type": "uint8"
+        },
+        {
+          "internalType": "enum FootballBetting.MatchStatus",
+          "name": "status",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "homeScore",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "awayScore",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "settled",
+          "type": "bool"
+        },
+        {
+          "internalType": "bool",
+          "name": "allowDraw",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "openMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum FootballBetting.Result",
+          "name": "betOn",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "placeBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "platformBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "platformFeeRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "previewReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "homeScore",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "awayScore",
+          "type": "uint8"
+        }
+      ],
+      "name": "recordResult",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "matchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "reopenMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdt",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}
