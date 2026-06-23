@@ -49,8 +49,8 @@ const hr = (title?: string) => {
 };
 
 const short = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-const u = (n: string) => ethers.parseUnits(n, 6);
-const fu = (n: bigint) => ethers.formatUnits(n, 6);
+const u = (n: string) => ethers.parseUnits(n, 18);
+const fu = (n: bigint) => ethers.formatUnits(n, 18);
 
 const fmtGas = (g: bigint) => (g > 1_000_000n ? `${(Number(g) / 1_000_000).toFixed(2)}M` : g.toString());
 

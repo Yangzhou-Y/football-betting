@@ -42,8 +42,8 @@ export const STATUS_KEYS: Record<MatchStatus, string> = {
   [MatchStatus.Settled]: "match.status.settled",
 };
 
-/** USDT 小数位数（6 位） */
-export const USDT_DECIMALS = 6;
+/** USDT 小数位数（Faucet USDT 为 18 位） */
+export const USDT_DECIMALS = 18;
 
 /** 平台手续费率（从合约查询，此处仅作后备） */
 export const DEFAULT_FEE_RATE = 200; // 2%
