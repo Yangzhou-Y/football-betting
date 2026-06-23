@@ -26,6 +26,7 @@
 
 // HardhatUserConfig：TypeScript 类型定义，让 IDE 有自动补全
 import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-verify";
 
 // @nomicfoundation/hardhat-toolbox：Hardhat 官方插件集合包
 // 内部打包了 ethers、chai、typechain、hardhat-network-helpers 等
@@ -183,6 +184,34 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 1030
     }
+  },
+
+  // ==========================================================================
+  // 合约验证（hardhat-verify）
+  // ==========================================================================
+  etherscan: {
+    apiKey: {
+      confluxTestnet: "unused",
+      confluxMainnet: "unused",
+    },
+    customChains: [
+      {
+        network: "confluxTestnet",
+        chainId: 71,
+        urls: {
+          apiURL: "https://api-evmtestnet.confluxscan.io/api",
+          browserURL: "https://evmtestnet.confluxscan.io",
+        },
+      },
+      {
+        network: "confluxMainnet",
+        chainId: 1030,
+        urls: {
+          apiURL: "https://api.confluxscan.io/api",
+          browserURL: "https://confluxscan.io",
+        },
+      },
+    ],
   },
 
   // ==========================================================================
