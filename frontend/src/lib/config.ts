@@ -4,8 +4,6 @@ import { useAccount } from "wagmi";
 // 自动导入部署记录（deploy.ts 会同步写入这些文件）
 import localhostData from "./deployments/localhost.json";
 import confluxTestnetData from "./deployments/confluxTestnet.json";
-// import confluxMainnetData from "./deployments/confluxMainnet.json";
-
 // ============================================================================
 // 部署记录 — 由 deploy.ts 自动写入，无需手动修改
 // ============================================================================
@@ -20,7 +18,6 @@ export interface DeploymentRecord {
 const DEPLOYMENTS: Record<number, DeploymentRecord> = {
   31337: localhostData as DeploymentRecord,
   71: confluxTestnetData as DeploymentRecord,
-  // 1030: confluxMainnetData as DeploymentRecord,
 };
 
 /**

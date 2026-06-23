@@ -167,23 +167,6 @@ const config: HardhatUserConfig = {
       chainId: 71
     },
 
-    /**
-     * Conflux eSpace 主网
-     * - 树图（Conflux）EVM 兼容空间主网，chainId=1030
-     * - 使用真实 CFX 付 Gas 费，USDT 为投注币种
-     * - RPC: https://evm.confluxrpc.com
-     *
-     * 部署前准备：
-     *   1. 在 .env 设置 CONFLUX_MAINNET_RPC_URL 和 PRIVATE_KEY
-     *   2. 设置 USDT_ADDRESS（Conflux eSpace 上 USDT 的合约地址）
-     *   3. 确保钱包里有足够 CFX 付 Gas
-     *   4. 先在 confluxTestnet 验证所有功能
-     */
-    confluxMainnet: {
-      url: process.env.CONFLUX_MAINNET_RPC_URL || "https://evm.confluxrpc.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1030
-    }
   },
 
   // ==========================================================================
@@ -192,7 +175,6 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       confluxTestnet: "unused",
-      confluxMainnet: "unused",
     },
     customChains: [
       {
@@ -201,14 +183,6 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api-evmtestnet.confluxscan.io/api",
           browserURL: "https://evmtestnet.confluxscan.io",
-        },
-      },
-      {
-        network: "confluxMainnet",
-        chainId: 1030,
-        urls: {
-          apiURL: "https://api.confluxscan.io/api",
-          browserURL: "https://confluxscan.io",
         },
       },
     ],

@@ -14,6 +14,7 @@ import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
+import type { MatchStruct, UserBetData } from "@/lib/types";
 import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { parseContractError } from "@/lib/errors";
@@ -36,7 +37,7 @@ export default function MatchDetailPage() {
     query: { enabled: !!contractAddress },
   });
   const { data: matchRaw } = useMatch(matchId);
-  const match = matchRaw as any;
+  const match = matchRaw as MatchStruct | undefined;
 
   if (!match || !match.homeTeam) {
     return <div className="text-center py-20 text-slate-400">{t("match.notFound")}</div>;
@@ -176,8 +177,8 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
     }
     if (isBetSuccess && !prevBetSuccess.current) toast.show(t("toast.betSuccess"), "success");
     if (betError) {
-      const msg = (betError as any)?.shortMessage || (betError as any)?.message || "";
-      const parsed = parseContractError(betError as any);
+      const msg = (betError as Error)?.message || "";
+      const parsed = parseContractError(betError as Error | null);
       const friendly = parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : (msg.slice(0, 60) || t("toast.betFailed")));
       toast.show(friendly, "error");
     }
@@ -197,8 +198,8 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
     }
     if (isApproved && !prevApproved.current) toast.show(t("toast.approveSuccess"), "success");
     if (approveError) {
-      const msg = (approveError as any)?.shortMessage || (approveError as any)?.message || "";
-      const parsed = parseContractError(approveError as any);
+      const msg = (approveError as Error)?.message || "";
+      const parsed = parseContractError(approveError as Error | null);
       toast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.approveFailed")), "error");
     }
     if (!isApproving && !isApproved && !approveError && prevApproving.current) {
@@ -208,8 +209,7 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
     prevApproved.current = isApproved;
   }, [isApproving, isApproved, approveError]);
 
-  const { data: existingBet } = useUserBet(matchId);
-  const existing = existingBet as { amount: bigint; betOn: number; hasBet: boolean } | undefined;
+  const { data: existing } = useUserBet(matchId);
   const hasBet = existing?.hasBet ?? false;
 
   const [confirmType, setConfirmType] = useState<"bet" | "cancel" | null>(null);
@@ -228,8 +228,8 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
     }
     if (isCancelled && !prevCancelled.current) toast.show(t("toast.cancelSuccess"), "success");
     if (cancelError) {
-      const msg = (cancelError as any)?.shortMessage || (cancelError as any)?.message || "";
-      const parsed = parseContractError(cancelError as any);
+      const msg = (cancelError as Error)?.message || "";
+      const parsed = parseContractError(cancelError as Error | null);
       toast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.cancelFailed")), "error");
     }
     if (!isCancelling && !isCancelled && !cancelError && prevCancelling.current) {
@@ -429,7 +429,7 @@ function BetButton({ opt, label, subtitle, selectedResult, setSelectedResult, ex
 function ClaimPanel({ matchId, paused }: { matchId: number; paused: boolean }) {
   const t = useT();
   const { data: preview } = usePreviewReward(matchId);
-  const { data: bet } = useUserBet(matchId);
+  const { data: betData } = useUserBet(matchId);
   const { handleClaim, isClaiming, isConfirming, isClaimed, claimError } = useClaimReward(matchId);
   const [claimConfirm, setClaimConfirm] = useState(false);
 
@@ -443,8 +443,8 @@ function ClaimPanel({ matchId, paused }: { matchId: number; paused: boolean }) {
     }
     if (isClaimed && !prevClaimed.current) cToast.show(t("toast.claimSuccess"), "success");
     if (claimError) {
-      const msg = (claimError as any)?.shortMessage || (claimError as any)?.message || "";
-      const parsed = parseContractError(claimError as any);
+      const msg = (claimError as Error)?.message || "";
+      const parsed = parseContractError(claimError as Error | null);
       cToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.claimFailed")), "error");
     }
     if (!isClaiming && !isClaimed && !claimError && prevClaiming.current) {
@@ -454,7 +454,6 @@ function ClaimPanel({ matchId, paused }: { matchId: number; paused: boolean }) {
     prevClaimed.current = isClaimed;
   }, [isClaiming, isClaimed, claimError]);
 
-  const betData = bet as any;
   const reward = (preview as bigint) ?? 0n;
   const rawClaim = parseContractError(claimError as Error | null);
   const friendlyClaim = rawClaim ? t(rawClaim) : null;
@@ -518,8 +517,7 @@ function ClaimPanel({ matchId, paused }: { matchId: number; paused: boolean }) {
 
 function MyBetInfo({ matchId, result, settled }: { matchId: number; result: number; settled: boolean }) {
   const t = useT();
-  const { data: betRaw } = useUserBet(matchId);
-  const bet = betRaw as any;
+  const { data: bet } = useUserBet(matchId);
 
   if (!bet || bet.amount === 0n) return null;
 

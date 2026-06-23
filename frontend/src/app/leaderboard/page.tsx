@@ -2,7 +2,6 @@
 
 import { useAccount } from "wagmi";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
-import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
 import { useMounted } from "@/hooks/useMounted";
 import { formatUSDT } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -42,7 +41,7 @@ export default function LeaderboardPage() {
   const t = useT();
   const mounted = useMounted();
   const { address, isConnected } = useAccount();
-  const { leaderboard, settledMatches, isLoading, isError, error } = useLeaderboard() as any;
+  const { leaderboard, settledMatches, isLoading, isError, error } = useLeaderboard();
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
@@ -71,7 +70,7 @@ export default function LeaderboardPage() {
       {isError && (
         <div className="text-center py-16 text-slate-400">
           <p className="text-red-500 text-lg">{t("leaderboard.loading")}</p>
-          <p className="text-sm mt-1">{(error as any)?.shortMessage || ""}</p>
+          <p className="text-sm mt-1">{(error as Error)?.message || ""}</p>
         </div>
       )}
 
@@ -111,7 +110,7 @@ export default function LeaderboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {leaderboard.map((entry: LeaderboardEntry, i: number) => {
+                  {leaderboard.map((entry, i) => {
                     const isMe = address && entry.address === address.toLowerCase();
                     return (
                       <tr

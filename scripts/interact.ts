@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * 赛事创建脚本 — 一键创建 14 场现有比赛
+ * 赛事创建脚本 — 一键创建 10 场现有比赛
  * ============================================================================
  *
  * 用法：
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
   }
 
   console.log("╔" + "═".repeat(52) + "╗");
-  console.log("║" + "  FootballBetting — 创建 14 场比赛".padEnd(52) + "║");
+  console.log("║" + "  FootballBetting — 创建 10 场比赛".padEnd(52) + "║");
   console.log("╚" + "═".repeat(52) + "╝");
   console.log(`  网络        chainId=${chainId}  区块 #${blockNum}`);
   console.log(`  合约        ${CONTRACT_ADDR}`);

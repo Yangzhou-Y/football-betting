@@ -333,26 +333,14 @@ contract FootballBetting {
         emit MatchOpened(matchId);
     }
 
-    /// @notice 删除未开放投注的比赛（仅 Created 状态），后续比赛编号依次递进补位
-    /// @dev    将 matchId 之后的所有比赛整体左移一位（#3→#2, #4→#3, ...），matchCounter 减一。
-    ///         要求被移动的比赛也处于 Created 状态且无投注，以保证投注映射一致性。
+    /// @notice 删除未开放投注的比赛（仅 Created 状态）
     function deleteMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
         require(m.startTime > 0, "FootballBetting: match does not exist");
         require(m.status == MatchStatus.Created, "FootballBetting: match is not in Created status");
         require(m.totalPool == 0, "FootballBetting: match has bets, cannot delete");
 
-        // 将后续比赛整体左移一位，实现编号递进补位
-        for (uint256 i = matchId; i < matchCounter; i++) {
-            Match storage next = matches[i + 1];
-            require(next.totalPool == 0, "FootballBetting: later match has bets, cannot shift");
-            require(next.status == MatchStatus.Created, "FootballBetting: later match not in Created, cannot shift");
-            matches[i] = next;
-        }
-
-        // 清除最后一个位置（已被左移，数据已拷贝到前一位）
-        delete matches[matchCounter];
-        matchCounter--;
+        delete matches[matchId];
 
         emit MatchDeleted(matchId);
     }
@@ -662,12 +650,11 @@ contract FootballBetting {
     /// @notice 提取平台手续费（仅管理员，USDT 转账）
     /// @dev    平台手续费来自：① 正常结算时 2% 抽成  ② 无人猜中时全部奖池归入
     ///         Effects before Interactions：platformBalance 先归零，再转 USDT
-    function withdrawFee() external onlyOwner {
+    function withdrawFee() external onlyOwner noReentrancy {
         uint256 amount = platformBalance;
         require(amount > 0, "FootballBetting: no fees to withdraw");
-        platformBalance = 0; // Effects before Interactions：先清零防重入
+        platformBalance = 0;
 
-        // usdt.transfer 比 call{value:} 更安全：返回值 bool 明确表示成功/失败
         require(usdt.transfer(owner, amount), "FootballBetting: USDT transfer failed");
 
         emit FeeWithdrawn(owner, amount);

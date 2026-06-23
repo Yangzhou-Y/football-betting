@@ -1,25 +1,39 @@
 "use client";
 
-import { useReadContract } from "wagmi";
+import { useReadContracts } from "wagmi";
 import { useAccount } from "wagmi";
 import { useDeploymentConfig } from "@/lib/config";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
-/** 判断当前连接的钱包是否为合约管理员 */
 export function useIsAdmin() {
   const { address } = useAccount();
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
-
-  const { data: owner } = useReadContract({
-    address: contractAddress!,
-    abi: FootballBettingABI.abi,
-    functionName: "owner",
-    chainId,
-    query: { enabled: isReady && contractAddress !== null },
+  const { data, isLoading } = useReadContracts({
+    contracts: [
+      {
+        address: contractAddress!,
+        abi: FootballBettingABI.abi,
+        functionName: "owner",
+        chainId,
+      },
+      {
+        address: contractAddress!,
+        abi: FootballBettingABI.abi,
+        functionName: "admins",
+        args: address ? [address] : undefined,
+        chainId,
+      },
+    ],
+    query: { enabled: isReady && contractAddress !== null && !!address },
   });
 
+  const owner = (data?.[0]?.result as string) ?? undefined;
+  const isInAdmins = (data?.[1]?.result as boolean) ?? false;
+  const isOwner = !!(address && owner && address.toLowerCase() === owner.toLowerCase());
+  const stateLoading = isReady && !data;
+
   return {
-    isAdmin: !!(isReady && address && owner && (address as string).toLowerCase() === (owner as string).toLowerCase()),
-    isLoading: !isReady || (isReady && owner === undefined),
+    isAdmin: isOwner || isInAdmins,
+    isLoading: !isReady || stateLoading,
   };
 }

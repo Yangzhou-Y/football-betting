@@ -7,9 +7,9 @@ import { MatchStatus } from "@/lib/constants";
 import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
-import type { MatchData } from "@/hooks/useMatches";
+import type { MatchStruct } from "@/lib/types";
 
-export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: MatchData; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean }) {
+export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: MatchStruct; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean }) {
   const t = useT();
   const { lang } = useLang();
   const { status, result, matchName, homeTeam, awayTeam, poolHome, poolDraw, poolAway, totalPool, startTime } = match;

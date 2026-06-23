@@ -2,30 +2,11 @@
 
 import { useReadContract, useReadContracts } from "wagmi";
 import { useDeploymentConfig } from "@/lib/config";
+import type { MatchStruct } from "@/lib/types";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
-/** 比赛数据的 TypeScript 类型（匹配合约 Match struct） */
-export interface MatchData {
-  matchName: string;
-  homeTeam: string;
-  awayTeam: string;
-  poolHome: bigint;
-  poolDraw: bigint;
-  poolAway: bigint;
-  totalPool: bigint;
-  minBet: bigint;
-  maxBet: bigint;
-  startTime: bigint;
-  deadline: bigint;
-  result: number;
-  status: number;
-  homeScore: number;
-  awayScore: number;
-  settled: boolean;
-  allowDraw: boolean;
-}
+export { type MatchStruct };
 
-/** 获取单场比赛详情 */
 export function useMatch(matchId: number) {
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
 
@@ -39,7 +20,6 @@ export function useMatch(matchId: number) {
   });
 }
 
-/** 获取所有比赛列表 */
 export function useAllMatches() {
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
 
@@ -52,7 +32,6 @@ export function useAllMatches() {
   });
 }
 
-/** 获取比赛总数 */
 export function useMatchCount() {
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
 
@@ -65,7 +44,6 @@ export function useMatchCount() {
   });
 }
 
-/** 批量获取合约基本信息 */
 export function useContractInfo() {
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
 

@@ -14,6 +14,7 @@ import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
+import type { MatchStruct } from "@/lib/types";
 import { encodeTeamName, decodeTeamName, parseUSDT, formatUSDT } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { parseContractError } from "@/lib/errors";
@@ -92,8 +93,8 @@ function CreateMatchForm({ contractAddress }: { contractAddress: string }) {
     }
     if (isConfirming && !prevConfirming.current) toast.show(t("toast.createSuccess"), "success");
     if (error) {
-      const msg = (error as any)?.shortMessage || (error as any)?.message || "";
-      const parsed = parseContractError(error as any);
+      const msg = (error as Error)?.message || "";
+      const parsed = parseContractError(error as Error | null);
       toast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.createFailed")), "error");
     }
     if (!isPending && !isConfirming && !error && prevPending.current) {
@@ -241,15 +242,14 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
   const t = useT();
   const { lang } = useLang();
   const { data: matches } = useAllMatches();
-  const matchList = (matches as any[]) ?? [];
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
   const { writeContract, data: adminHash, isPending: isAdminPending, error: adminError } = useWriteContract();
   const { isSuccess: adminConfirmed } = useWaitForTxAndRefresh(adminHash);
 
-  // 过滤已删除的比赛（startTime === 0n）
   const validMatches = matchList
-    .map((m: any, i: number) => ({ match: m, id: i + 1 }))
-    .filter(({ match }: any) => (match.startTime ?? 0n) > 0n);
+    .map((m, i) => ({ match: m, id: i + 1 }))
+    .filter(({ match }) => match.startTime > 0n);
 
   const mtToast = useTxToast();
   const prevAdminPending = useRef(false);
@@ -261,8 +261,8 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
     }
     if (adminConfirmed && !prevAdminConfirmed.current) mtToast.show(t("toast.adminSuccess"), "success");
     if (adminError) {
-      const msg = (adminError as any)?.shortMessage || (adminError as any)?.message || "";
-      const parsed = parseContractError(adminError as any);
+      const msg = (adminError as Error)?.message || "";
+      const parsed = parseContractError(adminError as Error | null);
       mtToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.adminFailed")), "error");
     }
     if (!isAdminPending && !adminConfirmed && !adminError && prevAdminPending.current) {
@@ -289,7 +289,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {validMatches.map(({ match: m, id: mid }: any) => (
+            {validMatches.map(({ match: m, id: mid }) => (
               <tr key={mid} className="hover:bg-slate-50">
                 <td className="px-3 py-2 text-slate-400">{mid}</td>
                 <td className="px-3 py-2">
@@ -320,7 +320,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
           </tbody>
         </table>
       </div>
-      {validMatches.some(({ match: m }: any) => m.status === MatchStatus.Created) && (
+      {validMatches.some(({ match: m }) => m.status === MatchStatus.Created) && (
         <p className="text-xs text-slate-400 px-3 py-2 bg-slate-50 border-t border-slate-100">{t("admin.deleteHint")}</p>
       )}
     </div>
@@ -363,8 +363,8 @@ function RecordBtn({ contractAddress, matchId, matchName, homeTeam, awayTeam }: 
     }
     if (recordDone && !prevRecDone.current) recToast.show(t("toast.recordSuccess"), "success");
     if (recordError) {
-      const msg = (recordError as any)?.shortMessage || (recordError as any)?.message || "";
-      const parsed = parseContractError(recordError as any);
+      const msg = (recordError as Error)?.message || "";
+      const parsed = parseContractError(recordError as Error | null);
       recToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.recordFailed")), "error");
     }
     if (!isPending && !recordDone && !recordError && prevRecPending.current) {
@@ -488,8 +488,8 @@ function DeleteBtn({ contractAddress, matchId, matchName, homeTeam, awayTeam }: 
     }
     if (deleteDone && !prevDelDone.current) delToast.show(t("toast.deleteSuccess"), "success");
     if (deleteError) {
-      const msg = (deleteError as any)?.shortMessage || (deleteError as any)?.message || "";
-      const parsed = parseContractError(deleteError as any);
+      const msg = (deleteError as Error)?.message || "";
+      const parsed = parseContractError(deleteError as Error | null);
       delToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.deleteFailed")), "error");
     }
     if (!isPending && !deleteDone && !deleteError && prevDelPending.current) {
@@ -568,8 +568,8 @@ function PausePanel({ contractAddress, chainId }: { contractAddress: string; cha
     }
     if (pauseDone && !prevPauseDone.current) pauseToast.show(isPaused ? t("toast.resumed") : t("toast.paused"), "success");
     if (pauseError) {
-      const msg = (pauseError as any)?.shortMessage || (pauseError as any)?.message || "";
-      const parsed = parseContractError(pauseError as any);
+      const msg = (pauseError as Error)?.message || "";
+      const parsed = parseContractError(pauseError as Error | null);
       pauseToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.adminFailed")), "error");
     }
     if (!isPending && !pauseDone && !pauseError && prevPausePending.current) {
@@ -628,8 +628,8 @@ function FeePanel({ contractAddress, chainId }: { contractAddress: string; chain
     }
     if (feeDone && !prevFeeDone.current) feeToast.show(t("toast.feeSuccess"), "success");
     if (feeError) {
-      const msg = (feeError as any)?.shortMessage || (feeError as any)?.message || "";
-      const parsed = parseContractError(feeError as any);
+      const msg = (feeError as Error)?.message || "";
+      const parsed = parseContractError(feeError as Error | null);
       feeToast.show(parsed ? t(parsed) : (msg.includes("rejected") ? t("toast.txCancelled") : t("toast.feeFailed")), "error");
     }
     if (!isPending && !feeDone && !feeError && prevFeePending.current) {

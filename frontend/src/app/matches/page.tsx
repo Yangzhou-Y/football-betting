@@ -8,6 +8,7 @@ import { useMounted } from "@/hooks/useMounted";
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStatus } from "@/lib/constants";
 import { useDeploymentConfig } from "@/lib/config";
+import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
@@ -18,9 +19,9 @@ export default function MatchesPage() {
   const FILTERS = [
     { key: "all", label: t("filter.all"), match: () => true },
     { key: "my", label: t("filter.my"), match: () => true },
-    { key: "open", label: t("filter.open"), match: (m: any) => m.status === MatchStatus.Open },
-    { key: "closed", label: t("filter.closed"), match: (m: any) => m.status === MatchStatus.Closed },
-    { key: "settled", label: t("filter.settled"), match: (m: any) => m.status === MatchStatus.Settled },
+    { key: "open", label: t("filter.open"), match: (m: MatchStruct) => m.status === MatchStatus.Open },
+    { key: "closed", label: t("filter.closed"), match: (m: MatchStruct) => m.status === MatchStatus.Closed },
+    { key: "settled", label: t("filter.settled"), match: (m: MatchStruct) => m.status === MatchStatus.Settled },
   ];
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
   const { data: paused } = useReadContract({
@@ -50,7 +51,7 @@ export default function MatchesPage() {
     return (
       <div className="text-center py-20">
         <p className="text-red-500 text-lg">{t("common.loading")}</p>
-        <p className="text-sm text-slate-400 mt-1">{(error as any)?.shortMessage || (error as Error)?.message || ""}</p>
+        <p className="text-sm text-slate-400 mt-1">{(error as Error)?.message || ""}</p>
       </div>
     );
   }
@@ -59,18 +60,17 @@ export default function MatchesPage() {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
 
-  const matchList = (matches as any[]) ?? [];
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
-  // 过滤已删除的比赛（startTime === 0n），保留正确 matchId
   const validMatches = matchList
-    .map((m: any, i: number) => ({ match: m, id: i + 1 }))
-    .filter(({ match }: any) => (match.startTime ?? 0n) > 0n);
+    .map((m, i) => ({ match: m, id: i + 1 }))
+    .filter(({ match }) => match.startTime > 0n);
 
   const betIds = new Set<bigint>();
   const betOnMap = new Map<bigint, number>();
   const claimedMap = new Map<bigint, boolean>();
   if (isConnected && betsRaw) {
-    const bets = betsRaw as [bigint[], bigint[], number[], bigint[], boolean[]];
+    const bets = betsRaw as UserAllBetsTuple;
     for (let i = 0; i < bets[0].length; i++) {
       betIds.add(bets[0][i]);
       betOnMap.set(bets[0][i], bets[2][i]);
@@ -78,12 +78,12 @@ export default function MatchesPage() {
     }
   }
 
-  const filtered = validMatches.filter(({ match: m, id }: any) => {
+  const filtered = validMatches.filter(({ match: m, id }) => {
     if (filter === "my") return betIds.has(BigInt(id));
     return FILTERS.find((f) => f.key === filter)?.match(m) ?? true;
   });
 
-  filtered.sort((a: any, b: any) => {
+  filtered.sort((a, b) => {
     const aBet = betIds.has(BigInt(a.id)) ? 0 : 1;
     const bBet = betIds.has(BigInt(b.id)) ? 0 : 1;
     if (aBet !== bBet) return aBet - bBet;
@@ -123,7 +123,7 @@ export default function MatchesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(({ match: m, id }: any) => {
+          {filtered.map(({ match: m, id }) => {
             const mid = BigInt(id);
             const hasBet = betIds.has(mid);
             const won = hasBet ? m.result === betOnMap.get(mid) : undefined;

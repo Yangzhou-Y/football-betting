@@ -67,7 +67,7 @@ async function main(): Promise<void> {
         // 给所有可用测试账户 mint USDT
         const signers = await ethers.getSigners();
         for (let i = 0; i < signers.length; i++) {
-            await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 6));
+            await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 18));
             console.log(`  ✓ 已为账户 [${i}] mint 100,000 USDT  ${signers[i].address}`);
         }
     } else {
@@ -95,7 +95,7 @@ async function main(): Promise<void> {
                 console.log(`  ✓ MockERC20 已部署  ${usdtAddress}`);
                 const signers = await ethers.getSigners();
                 for (let i = 0; i < signers.length; i++) {
-                    await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 6));
+                    await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 18));
                     console.log(`  ✓ 已为账户 [${i}] mint 100,000 USDT  ${signers[i].address}`);
                 }
             }
@@ -231,7 +231,7 @@ async function main(): Promise<void> {
             const usdtBal = await mockUsdt.balanceOf(signers[i].address);
             const role = i === 0 ? "管理员" : "用户";
             console.log(`  [${i}] ${signers[i].address} ${role}`);
-            console.log(`       ETH: ${ethers.formatEther(eth).slice(0, 8)}  USDT: ${ethers.formatUnits(usdtBal, 6)}`);
+            console.log(`       ETH: ${ethers.formatEther(eth).slice(0, 8)}  USDT: ${ethers.formatUnits(usdtBal, 18)}`);
         }
     }
 }

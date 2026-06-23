@@ -33,7 +33,7 @@ pragma solidity ^0.8.21;
 contract MockERC20 {
     string public name = "Mock USDT";
     string public symbol = "mUSDT";
-    uint8 public decimals = 6; // 与真实 USDT（Conflux eSpace）一致
+    uint8 public decimals = 18;
 
     /// @dev 总发行量（mint 时累加）
     uint256 public totalSupply;

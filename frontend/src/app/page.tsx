@@ -6,6 +6,7 @@ import { useDeploymentConfig } from "@/lib/config";
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStatus } from "@/lib/constants";
 import { formatUSDT } from "@/lib/utils";
+import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { useAccount } from "wagmi";
 import { useT } from "@/lib/i18n";
 
@@ -28,7 +29,7 @@ export default function HomePage() {
     return (
       <div className="text-center py-20">
         <p className="text-red-500 text-lg">{t("common.loading")}</p>
-        <p className="text-sm text-slate-400 mt-1">{(error as any)?.shortMessage || (error as Error)?.message || ""}</p>
+        <p className="text-sm text-slate-400 mt-1">{(error as Error)?.message || ""}</p>
       </div>
     );
   }
@@ -37,18 +38,17 @@ export default function HomePage() {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
 
-  const matchList = (matches as any[]) ?? [];
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
-  // 过滤已删除的比赛（startTime === 0n），保留正确 matchId
   const validMatches = matchList
-    .map((m: any, i: number) => ({ match: m, id: i + 1 }))
-    .filter(({ match }: any) => (match.startTime ?? 0n) > 0n);
+    .map((m, i) => ({ match: m, id: i + 1 }))
+    .filter(({ match }) => match.startTime > 0n);
 
   const betIds = new Set<bigint>();
   const betOnMap = new Map<bigint, number>();
   const claimedMap = new Map<bigint, boolean>();
   if (isConnected && betsRaw) {
-    const bets = betsRaw as [bigint[], bigint[], number[], bigint[], boolean[]];
+    const bets = betsRaw as UserAllBetsTuple;
     for (let i = 0; i < bets[0].length; i++) {
       betIds.add(bets[0][i]);
       betOnMap.set(bets[0][i], bets[2][i]);
@@ -59,7 +59,7 @@ export default function HomePage() {
   const getBetInfo = (mid: number) => {
     const midBig = BigInt(mid);
     const hb = betIds.has(midBig);
-    const m = matchList[mid - 1] as any;
+    const m = matchList[mid - 1];
     return {
       hasBet: hb,
       won: hb && m ? m.result === betOnMap.get(midBig) : undefined,
@@ -67,11 +67,11 @@ export default function HomePage() {
     };
   };
 
-  const totalPool = validMatches.reduce((sum: bigint, { match }: any) => sum + (match.totalPool ?? 0n), 0n);
-  const openMatches = validMatches.filter(({ match }: any) => match.status === MatchStatus.Open);
+  const totalPool = validMatches.reduce((sum, { match }) => sum + match.totalPool, 0n);
+  const openMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Open);
   const upcomingMatches = validMatches
-    .filter(({ match }: any) => match.status === MatchStatus.Created || match.status === MatchStatus.Open)
-    .sort((a: any, b: any) => Number(a.match.startTime - b.match.startTime));
+    .filter(({ match }) => match.status === MatchStatus.Created || match.status === MatchStatus.Open)
+    .sort((a, b) => Number(a.match.startTime - b.match.startTime));
 
   return (
     <div className="space-y-8 relative" key={address}>
@@ -82,16 +82,16 @@ export default function HomePage() {
       </div>
 
       {(() => {
-        const hotMatches = openMatches.filter(({ match }: any) => (match.totalPool ?? 0n) > 0n);
+        const hotMatches = openMatches.filter(({ match }) => match.totalPool > 0n);
         if (hotMatches.length === 0) return null;
         return (
           <section>
             <h2 className="text-lg font-semibold mb-3">{t("section.hot")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...hotMatches]
-                .sort((a: any, b: any) => Number(b.match.totalPool - a.match.totalPool))
+                .sort((a, b) => Number(b.match.totalPool - a.match.totalPool))
                 .slice(0, 3)
-                .map(({ match, id }: any) => (
+                .map(({ match, id }) => (
                   <MatchCard key={id} match={match} matchId={id} {...getBetInfo(id)} />
                 ))}
             </div>
@@ -103,7 +103,7 @@ export default function HomePage() {
         <section>
           <h2 className="text-lg font-semibold mb-3">{t("section.upcoming")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {upcomingMatches.slice(0, 5).map(({ match, id }: any) => (
+            {upcomingMatches.slice(0, 5).map(({ match, id }) => (
               <MatchCard key={id} match={match} matchId={id} {...getBetInfo(id)} />
             ))}
           </div>

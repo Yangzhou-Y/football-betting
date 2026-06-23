@@ -9,6 +9,7 @@ import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { Result } from "@/lib/constants";
 import { RESULT_KEYS } from "@/lib/constants";
+import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { formatUSDT, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
@@ -33,8 +34,8 @@ export default function MyBetsPage() {
     );
   }
 
-  const bets = betsRaw as [bigint[], bigint[], number[], bigint[], boolean[]] | undefined;
-  const matchList = (matches as any[]) ?? [];
+  const bets = betsRaw as UserAllBetsTuple | undefined;
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
   if (!bets || bets[0].length === 0) {
     return (
@@ -87,7 +88,7 @@ export default function MyBetsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {matchIds.map((mid, i) => {
-                const match = matchList.find((m: any, j: number) => j + 1 === Number(mid));
+                const match = matchList.find((_m, j) => j + 1 === Number(mid));
                 return (
                   <tr key={i} className="hover:bg-slate-50">
                     <td className="px-4 py-3">

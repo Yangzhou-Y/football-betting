@@ -6,6 +6,7 @@ import { usePublicClient, useBlockNumber } from "wagmi";
 import { getContractEvents } from "viem/actions";
 import { useDeploymentConfig } from "@/lib/config";
 import { useAllMatches } from "@/hooks/useMatches";
+import type { MatchStruct } from "@/lib/types";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 import { MatchStatus } from "@/lib/constants";
 import { shortAddress } from "@/lib/utils";
@@ -42,7 +43,7 @@ export function useLeaderboard() {
   const client = usePublicClient();
   const { data: currentBlock } = useBlockNumber();
 
-  const matchList = (matches as any[]) ?? [];
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
   const fromBlock = deployBlock ? BigInt(deployBlock) : 0n;
 
@@ -80,19 +81,13 @@ export function useLeaderboard() {
           }),
         ]);
 
-        for (const log of betLogs as any[]) {
-          allBets.push({
-            matchId: BigInt(log.args.matchId),
-            user: (log.args.user as string).toLowerCase(),
-            amount: BigInt(log.args.amount),
-          });
+        for (const log of betLogs) {
+          const { matchId, user, amount } = (log as unknown as { args: RawBetEvent }).args;
+          allBets.push({ matchId, user: user.toLowerCase(), amount });
         }
-        for (const log of rewardLogs as any[]) {
-          allRewards.push({
-            matchId: BigInt(log.args.matchId),
-            user: (log.args.user as string).toLowerCase(),
-            rewardAmount: BigInt(log.args.rewardAmount),
-          });
+        for (const log of rewardLogs) {
+          const { matchId, user, rewardAmount } = (log as unknown as { args: RawRewardEvent }).args;
+          allRewards.push({ matchId, user: user.toLowerCase(), rewardAmount });
         }
       }
 
@@ -103,7 +98,7 @@ export function useLeaderboard() {
   });
 
   const settledMatches = useMemo(
-    () => matchList.filter((m: any) => m.status === MatchStatus.Settled),
+    () => matchList.filter((m) => m.status === MatchStatus.Settled),
     [matchList],
   );
 
