@@ -91,22 +91,17 @@ async function main(): Promise<void> {
 
   const matches: MatchDef[] = [
     // ── 6 月 24 日 ──
-    { name: "世界杯小组赛", home: "阿根廷", away: "奥地利",     start: Date.UTC(2026, 5, 24, 10, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "法国", away: "伊拉克",       start: Date.UTC(2026, 5, 24, 14, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "挪威", away: "塞内加尔",     start: Date.UTC(2026, 5, 24, 17, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "约旦", away: "阿尔及利亚",   start: Date.UTC(2026, 5, 24, 20, 0, 0) / 1000, open: true },
+    { name: "世界杯小组赛", home: "葡萄牙", away: "乌兹别克斯坦", start: Date.UTC(2026, 5, 23, 17, 0, 0) / 1000, open: true },
+    { name: "世界杯小组赛", home: "英格兰", away: "加纳",       start: Date.UTC(2026, 5, 23, 20, 0, 0) / 1000, open: true },
+    { name: "世界杯小组赛", home: "巴拿马", away: "克罗地亚",   start: Date.UTC(2026, 5, 23, 23, 0, 0) / 1000, open: true },
+    { name: "世界杯小组赛", home: "哥伦比亚", away: "刚果（金）", start: Date.UTC(2026, 5, 24,  2, 0, 0) / 1000, open: true },
     // ── 6 月 25 日 ──
-    { name: "世界杯小组赛", home: "葡萄牙", away: "乌兹别克斯坦", start: Date.UTC(2026, 5, 25, 10, 0, 0) / 1000, open: true },
-    { name: "世界杯小组赛", home: "英格兰", away: "加纳",       start: Date.UTC(2026, 5, 25, 13, 0, 0) / 1000, open: true },
-    { name: "世界杯小组赛", home: "巴拿马", away: "克罗地亚",   start: Date.UTC(2026, 5, 25, 16, 0, 0) / 1000, open: true },
-    { name: "世界杯小组赛", home: "哥伦比亚", away: "刚果（金）", start: Date.UTC(2026, 5, 25, 19, 0, 0) / 1000, open: true },
-    // ── 6 月 26 日 ──
-    { name: "世界杯小组赛", home: "瑞士", away: "加拿大",       start: Date.UTC(2026, 5, 26, 12, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "波黑", away: "卡塔尔",       start: Date.UTC(2026, 5, 26, 12, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "苏格兰", away: "巴西",       start: Date.UTC(2026, 5, 26, 15, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "摩洛哥", away: "海地",       start: Date.UTC(2026, 5, 26, 15, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "南非", away: "韩国",         start: Date.UTC(2026, 5, 26, 18, 0, 0) / 1000, open: false },
-    { name: "世界杯小组赛", home: "捷克", away: "墨西哥",       start: Date.UTC(2026, 5, 26, 18, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "瑞士", away: "加拿大",       start: Date.UTC(2026, 5, 24, 19, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "波黑", away: "卡塔尔",       start: Date.UTC(2026, 5, 24, 19, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "苏格兰", away: "巴西",       start: Date.UTC(2026, 5, 24, 22, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "摩洛哥", away: "海地",       start: Date.UTC(2026, 5, 24, 22, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "南非", away: "韩国",         start: Date.UTC(2026, 5, 25,  1, 0, 0) / 1000, open: false },
+    { name: "世界杯小组赛", home: "捷克", away: "墨西哥",       start: Date.UTC(2026, 5, 25,  1, 0, 0) / 1000, open: false },
   ];
 
   const bjTime = (ts: number) => new Date(ts * 1000).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });
