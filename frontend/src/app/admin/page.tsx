@@ -25,7 +25,7 @@ export default function AdminPage() {
   const mounted = useMounted();
   const { isConnected } = useAccount();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
-  const { contractAddress, usdtAddress, chainId } = useDeploymentConfig();
+  const { contractAddress, chainId } = useDeploymentConfig();
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
@@ -52,10 +52,6 @@ export default function AdminPage() {
       <section>
         <h2 className="text-lg font-semibold mb-3">{t("admin.matchMgmt")}</h2>
         <MatchManagement contractAddress={contractAddress!} />
-      </section>
-
-      <section className="mb-6">
-        <MintPanel contractAddress={contractAddress!} usdtAddress={usdtAddress!} />
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -548,52 +544,6 @@ function DeleteBtn({ contractAddress, matchId, matchName, homeTeam, awayTeam }: 
         </ConfirmDialog>
       )}
     </>
-  );
-}
-
-function MintPanel({ contractAddress, usdtAddress }: { contractAddress: string; usdtAddress: string }) {
-  const t = useT();
-  const { writeContract, isPending, data: mintHash, error: mintError } = useWriteContract();
-  const { isSuccess: mintDone } = useWaitForTxAndRefresh(mintHash);
-  const [mintAddr, setMintAddr] = useState("");
-  const [mintAmount, setMintAmount] = useState("100000");
-
-  const mtToast = useTxToast();
-  const prevPending = useRef(false);
-  const prevDone = useRef(false);
-  useEffect(() => {
-    if (isPending && !prevPending.current) mtToast.show("铸造交易已提交...", "pending");
-    if (mintDone && !prevDone.current) mtToast.show("铸造成功", "success");
-    if (mintError) {
-      const msg = (mintError as any)?.shortMessage || "";
-      mtToast.show(msg.includes("rejected") ? "已取消" : "铸造失败", "error");
-    }
-    prevPending.current = isPending;
-    prevDone.current = mintDone;
-  }, [isPending, mintDone, mintError]);
-
-  const handleMint = () => {
-    if (!mintAddr) return;
-    writeContract({
-      address: usdtAddress as `0x${string}`,
-      abi: [{ type: "function", name: "mint", inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" }],
-      functionName: "mint",
-      args: [mintAddr as `0x${string}`, BigInt(Number(mintAmount)) * 1_000_000n],
-    });
-  };
-
-  return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-      <h3 className="text-sm font-semibold mb-3">铸造 USDT</h3>
-      <div className="flex gap-2">
-        <input className="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="接收地址" value={mintAddr} onChange={(e) => setMintAddr(e.target.value)} disabled={isPending} />
-        <input className="w-28 px-3 py-2 border rounded-lg text-sm" type="number" value={mintAmount} onChange={(e) => setMintAmount(e.target.value)} disabled={isPending} />
-        <button onClick={handleMint} disabled={isPending || !mintAddr} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap">
-          {isPending ? "铸造中..." : "铸造"}
-        </button>
-      </div>
-      <p className="text-xs text-slate-400 mt-1.5">MockERC20 公开 mint，填入地址和数量即可铸造 USDT。单位：USDT（整数）。</p>
-    </div>
   );
 }
 
