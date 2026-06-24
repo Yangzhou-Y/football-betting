@@ -25,10 +25,14 @@ function isMetaMaskInstalled() {
   if (typeof window === "undefined") return false;
   const eth = (window as any).ethereum;
   if (!eth) return false;
+  // MetaMask 独有的内部 API，其他钱包/浏览器不会设置
+  if (eth._metamask) return true;
+  // EIP-6963 多提供者检测
   if (eth.providers?.length) {
-    return eth.providers.some((p: any) => p.isMetaMask && !p.isRabby);
+    return eth.providers.some((p: any) => p._metamask || (p.isMetaMask && !p.isRabby && !p.isCoinbaseWallet && !p.isOKExWallet));
   }
-  return eth.isMetaMask && !eth.isRabby;
+  // 单提供者：严格排除已知的伪装者
+  return eth.isMetaMask && !eth.isRabby && !eth.isCoinbaseWallet && !eth.isOKExWallet && !eth.isBraveWallet && !eth.isTrust;
 }
 
 // 智能 MetaMask：有拓展用拓展，没拓展走 WalletConnect 弹二维码
