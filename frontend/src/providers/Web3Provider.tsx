@@ -8,8 +8,8 @@ import {
   connectorsForWallets,
   type Locale,
 } from "@rainbow-me/rainbowkit";
-import { rabbyWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
-import { injected } from "wagmi/connectors";
+import { rabbyWallet } from "@rainbow-me/rainbowkit/wallets";
+import { injected, walletConnect } from "wagmi/connectors";
 import type { CreateConnectorFn } from "wagmi";
 import { supportedChains } from "@/lib/wagmi";
 import { useLang } from "@/lib/i18n";
@@ -20,6 +20,9 @@ const projectId = "c3ab3b19085ebe629d528e219ebd3546";
 
 const META_MASK_ICON =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDI4IDI4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMCAwaDI4djI4SDB6Ii8+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48cGF0aCBmaWxsPSIjZmY1YzE2IiBkPSJtMjQuMDI0IDIzLjgyNC00Ljg0Ni0xLjQzNC0zLjY1NSAyLjE3Mi0yLjU1LS4wMDEtMy42NTYtMi4xNzEtNC44NDQgMS40MzRMMyAxOC44OGwxLjQ3My01LjQ4OEwzIDguNzUxIDQuNDczIDNsNy41NjkgNC40OTZoNC40MTNMMjQuMDI0IDNsMS40NzMgNS43NTEtMS40NzMgNC42NCAxLjQ3MyA1LjQ4OHoiLz48cGF0aCBmaWxsPSIjZmY1YzE2IiBkPSJtNC40NzQgMyA3LjU3IDQuNDk5LS4zMDIgMy4wODd6bTQuODQ0IDE1Ljg4MSAzLjMzIDIuNTIyLTMuMzMuOTg3em0zLjA2NC00LjE3LS42NC00LjEyMy00LjA5NyAyLjgwNGgtLjAwMnYuMDAxbC4wMTMgMi44ODYgMS42NjEtMS41Njd6TTI0LjAyNCAzbC03LjU3IDQuNDk5LjMgMy4wODd6TTE5LjE4IDE4Ljg4MWwtMy4zMyAyLjUyMiAzLjMzLjk4N3ptMS42NzQtNS40ODh2LS4wMDJsLTQuMDk3LTIuODA0LS42NCA0LjEyNGgzLjA2NGwxLjY2MiAxLjU2N3oiLz48cGF0aCBmaWxsPSIjZTM0ODA3IiBkPSJtOS4zMTcgMjIuMzktNC44NDQgMS40MzRMMyAxOC44ODFoNi4zMTd6bTMuMDY0LTcuNjguOTI1IDUuOTYyLTEuMjgyLTMuMzE1LTQuMzctMS4wNzggMS42NjItMS41Njh6bTYuNzk5IDcuNjggNC44NDQgMS40MzQgMS40NzMtNC45NDNIMTkuMTh6bS0zLjA2NC03LjY4LS45MjUgNS45NjIgMS4yODItMy4zMTUgNC4zNy0xLjA3OC0xLjY2My0xLjU2OHoiLz48cGF0aCBmaWxsPSIjZmY4ZDVkIiBkPSJtMyAxOC44OCAxLjQ3My01LjQ4OWgzLjE2OWwuMDEyIDIuODg3IDQuMzcgMS4wNzggMS4yODIgMy4zMTQtLjY1OS43My0zLjMzLTIuNTIySDN6bTIyLjQ5NyAwLTEuNDczLTUuNDg5aC0zLjE3bC0uMDEgMi44ODctNC4zNzEgMS4wNzgtMS4yODIgMy4zMTQuNjU5LjczIDMuMzMtMi41MjJoNi4zMTd6TTE2LjQ1NSA3LjQ5NWgtNC40MTNsLS4zIDMuMDg3IDEuNTY1IDEwLjA4NGgxLjg4NGwxLjU2NS0xMC4wODR6Ii8+PC9nPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTMgM2gyMi41djIxLjU2M0gzeiIvPjwvY2xpcFBhdGg+PC9kZWZzPjwvc3ZnPg==";
+
+const WC_ICON =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyODgiIGhlaWdodD0iMjg4IiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgMjg4IDI4OCI+PHJlY3Qgd2lkdGg9IjI4OCIgaGVpZ2h0PSIyODgiIGZpbGw9IiMzQjk5RkMiIHJ4PSI1Ny42Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTc3LjIgMTE2LjhjMzYuOS0zNi4yIDk2LjctMzYuMiAxMzMuNiAwbDQuNCA0LjRjMS45IDEuOCAxLjkgNC44IDAgNi42bC0xNS4yIDE0LjljLS45LjktMi4zLjktMy4yIDBsLTYuMS02LjFjLTI1LjctMjUuMy02Ny41LTI1LjMtOTMuMiAwbC02LjYgNi41Yy0uOS45LTIuMy45LTMuMiAwTDcyLjggMTIzLjRjLTEuOC0xLjgtMS44LTQuOCAwLTYuNmw0LjQtNC40Wm0xNjUuMSAxNS40IDEzLjUgMTMuM2MxLjkgMS44IDEuOSA0LjggMCA2LjZsLTYxLjIgNjAuMWMtMS45IDEuOC00LjkgMS44LTYuOCAwbC00My40LTQyLjZjLS41LS41LTEuMy0uNS0xLjggMGwtNDMuNCA0Mi42Yy0xLjkgMS44LTQuOSAxLjgtNi44IDBsLTYxLjItNjAuMWMtMS45LTEuOC0xLjktNC44IDAtNi42bDEzLjUtMTMuM2MxLjktMS44IDQuOS0xLjggNi44IDBsNDMuNCA0Mi42Yy41LjUgMS4zLjUgMS44IDBsNDMuNC00Mi42YzEuOS0xLjggNC45LTEuOCA2LjggMGw0My40IDQyLjZjLjUuNSAxLjMuNSAxLjggMGw0My40LTQyLjZjMS45LTEuOCA0LjktMS44IDYuOCAweiIvPjwvc3ZnPg==";
 
 function isMetaMaskInstalled() {
   if (typeof window === "undefined") return false;
@@ -34,7 +37,6 @@ function isMetaMaskInstalled() {
   return eth.isMetaMask && !eth.isRabby && !eth.isCoinbaseWallet && !eth.isOKExWallet && !eth.isBraveWallet && !eth.isTrust;
 }
 
-// MetaMask 拓展专用；没拓展时 RainbowKit 自动显示下载引导
 function customMetaMaskWallet() {
   const installed = isMetaMaskInstalled();
   return {
@@ -61,13 +63,48 @@ function customMetaMaskWallet() {
   };
 }
 
+// WalletConnect 自定义钱包：showQrModal=true 让 wagmi 原生弹窗处理 QR 码
+// RainbowKit 不插手，避免弹窗冲突导致桌面白屏
+function customWalletConnect() {
+  return {
+    id: "walletConnect",
+    name: "WalletConnect",
+    iconBackground: "#3b99fc",
+    iconAccent: "#3b99fc",
+    iconUrl: WC_ICON,
+    downloadUrls: {
+      android: "https://play.google.com/store/apps/details?id=com.walletconnect",
+      ios: "https://apps.apple.com/app/walletconnect/id1586075497",
+      mobile: "https://walletconnect.com/download",
+      chrome:
+        "https://chrome.google.com/webstore/detail/walletconnect/",
+      browserExtension: "https://walletconnect.com/download",
+    },
+    createConnector: (walletDetails: any): CreateConnectorFn => {
+      return (config: any) => ({
+        ...walletConnect({
+          projectId,
+          showQrModal: true,
+          metadata: {
+            name: "Football Betting",
+            description: "Football Betting DApp",
+            url: "",
+            icons: [],
+          },
+        })(config),
+        ...walletDetails,
+      });
+    },
+  };
+}
+
 const wagmiConfig = createConfig({
   chains: supportedChains as any,
   connectors: connectorsForWallets(
     [
       {
         groupName: "Recommended",
-        wallets: [customMetaMaskWallet as any, rabbyWallet, walletConnectWallet],
+        wallets: [customMetaMaskWallet as any, rabbyWallet, customWalletConnect as any],
       },
     ],
     { projectId, appName: "Football Betting" },
