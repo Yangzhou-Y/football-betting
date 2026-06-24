@@ -19,10 +19,13 @@ import { useState, type ReactNode } from "react";
 const wagmiConfig = createConfig({
   chains: supportedChains as any,
   connectors: [
-    // MetaMask 专用 connector（通过 EIP-6963 rdns 精准匹配）
+    // MetaMask 专用 connector（通过 EIP-6963 rdns 精准匹配，桌面端优先）
     injected({ target: "metaMask" }),
     // Rabby Wallet 专用 connector（shim 注入 window.ethereum）
     injected({ target: "rabby" }),
+    // 兜底 injected connector，捕获无 EIP-6963 的环境（MetaMask 移动端浏览器等）
+    // 桌面端已由上方 target 匹配，不会重复显示
+    injected(),
   ],
   transports: supportedChains.reduce(
     (acc, chain) => ({ ...acc, [chain.id]: http() }),
