@@ -8,8 +8,8 @@ import {
   connectorsForWallets,
   type Locale,
 } from "@rainbow-me/rainbowkit";
-import { rabbyWallet } from "@rainbow-me/rainbowkit/wallets";
-import { injected, walletConnect } from "wagmi/connectors";
+import { rabbyWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
+import { injected } from "wagmi/connectors";
 import type { CreateConnectorFn } from "wagmi";
 import { supportedChains } from "@/lib/wagmi";
 import { useLang } from "@/lib/i18n";
@@ -25,18 +25,18 @@ function isMetaMaskInstalled() {
   if (typeof window === "undefined") return false;
   const eth = (window as any).ethereum;
   if (!eth) return false;
-  // MetaMask 独有的内部 API，其他钱包/浏览器不会设置
   if (eth._metamask) return true;
-  // EIP-6963 多提供者检测
   if (eth.providers?.length) {
-    return eth.providers.some((p: any) => p._metamask || (p.isMetaMask && !p.isRabby && !p.isCoinbaseWallet && !p.isOKExWallet));
+    return eth.providers.some(
+      (p: any) => p._metamask || (p.isMetaMask && !p.isRabby && !p.isCoinbaseWallet && !p.isOKExWallet),
+    );
   }
-  // 单提供者：严格排除已知的伪装者
   return eth.isMetaMask && !eth.isRabby && !eth.isCoinbaseWallet && !eth.isOKExWallet && !eth.isBraveWallet && !eth.isTrust;
 }
 
-// 智能 MetaMask：有拓展用拓展，没拓展走 WalletConnect 弹二维码
-function smartMetaMaskWallet() {
+// MetaMask 拓展专用；没拓展时 RainbowKit 自动显示下载引导
+function customMetaMaskWallet() {
+  const installed = isMetaMaskInstalled();
   return {
     id: "metaMask",
     name: "MetaMask",
@@ -44,29 +44,19 @@ function smartMetaMaskWallet() {
     iconBackground: "#fff",
     iconAccent: "#f6851a",
     iconUrl: META_MASK_ICON,
-    installed: true,
+    installed: installed || undefined,
+    downloadUrls: {
+      android: "https://play.google.com/store/apps/details?id=io.metamask",
+      ios: "https://apps.apple.com/us/app/metamask/id1438144202",
+      mobile: "https://metamask.io/download",
+      chrome: "https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn",
+      browserExtension: "https://metamask.io/download",
+    },
     createConnector: (walletDetails: any): CreateConnectorFn => {
-      return (config: any) => {
-        if (isMetaMaskInstalled()) {
-          return {
-            ...injected({ target: "metaMask" })(config),
-            ...walletDetails,
-          };
-        }
-        return {
-          ...walletConnect({
-            projectId,
-            showQrModal: false,
-            metadata: {
-              name: "Football Betting",
-              description: "Football Betting DApp",
-              url: "",
-              icons: [],
-            },
-          })(config),
-          ...walletDetails,
-        };
-      };
+      return (config: any) => ({
+        ...injected({ target: "metaMask" })(config),
+        ...walletDetails,
+      });
     },
   };
 }
@@ -77,7 +67,7 @@ const wagmiConfig = createConfig({
     [
       {
         groupName: "Recommended",
-        wallets: [smartMetaMaskWallet as any, rabbyWallet],
+        wallets: [customMetaMaskWallet as any, rabbyWallet, walletConnectWallet],
       },
     ],
     { projectId, appName: "Football Betting" },
