@@ -69,7 +69,7 @@ function customMetaMaskWallet() {
 function makeWcConnector() {
   const baseFn = walletConnect({
     projectId,
-    showQrModal: true,
+    showQrModal: false,
     metadata: {
       name: "Football Betting",
       description: "Football Betting DApp",
