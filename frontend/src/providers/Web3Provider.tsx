@@ -6,10 +6,9 @@ import {
   RainbowKitProvider,
   lightTheme,
   connectorsForWallets,
-  getWalletConnectConnector,
   type Locale,
 } from "@rainbow-me/rainbowkit";
-import { walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
+import { rabbyWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
 import { injected } from "wagmi/connectors";
 import type { CreateConnectorFn } from "wagmi";
 import { supportedChains } from "@/lib/wagmi";
@@ -19,41 +18,15 @@ import { useState, type ReactNode } from "react";
 
 const projectId = "c3ab3b19085ebe629d528e219ebd3546";
 
-// MetaMask icon as inline data URL
-const METAMASK_ICON =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' fill='none'%3E%3Cpath fill='%23fff' d='M0 0h28v28H0z'/%3E%3Cg clip-path='url(%23a)'%3E%3Cpath fill='%23ff5c16' d='m24.024 23.824-4.846-1.434-3.655 2.172-2.55-.001-3.656-2.171-4.844 1.434L3 18.88l1.473-5.488L3 8.751 4.473 3l7.569 4.496h4.413L24.024 3l1.473 5.751-1.473 4.64 1.473 5.488z'/%3E%3Cpath fill='%23ff5c16' d='m4.474 3 7.57 4.499-.302 3.087zm4.844 15.881 3.33 2.522-3.33.987zm3.064-4.17-.64-4.123-4.097 2.804h-.002v.001l.013 2.886 1.661-1.567zM24.024 3l-7.57 4.499.3 3.087zM19.18 18.881l-3.33 2.522 3.33.987zm1.674-5.488v-.002l-4.097-2.804-.64 4.124h3.064l1.662 1.567z'/%3E%3Cpath fill='%23e34807' d='m9.317 22.39-4.844 1.434L3 18.881h6.317zm3.064-7.68.925 5.962-1.282-3.315-4.37-1.078 1.662-1.568zm6.799 7.68 4.844 1.434 1.473-4.943H19.18zm-3.064-7.68-.925 5.962 1.282-3.315 4.37-1.078-1.663-1.568z'/%3E%3Cpath fill='%23ff8d5d' d='m3 18.88 1.473-5.489h3.169l.012 2.887 4.37 1.078 1.282 3.314-.659.73-3.33-2.522H3zm22.497 0-1.473-5.489h-3.17l-.01 2.887-4.371 1.078-1.282 3.314.659.73 3.33-2.522h6.317zM16.455 7.495h-4.413l-.3 3.087 1.565 10.084h1.884l1.565-10.084z'/%3E%3C/svg%3E";
-
-function isMobile() {
-  return /Android|iPhone|iPad|iPod/i.test(
-    typeof navigator !== "undefined" ? navigator.userAgent : "",
-  );
+// MetaMask 图标 — 使用 RainbowKit 内置的 SVG
+function metaMaskIcon() {
+  return "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDI4IDI4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMCAwaDI4djI4SDB6Ii8+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48cGF0aCBmaWxsPSIjZmY1YzE2IiBkPSJtMjQuMDI0IDIzLjgyNC00Ljg0Ni0xLjQzNC0zLjY1NSAyLjE3Mi0yLjU1LS4wMDEtMy42NTYtMi4xNzEtNC44NDQgMS40MzRMMyAxOC44OGwxLjQ3My01LjQ4OEwzIDguNzUxIDQuNDczIDNsNy41NjkgNC40OTZoNC40MTNMMjQuMDI0IDNsMS40NzMgNS43NTEtMS40NzMgNC42NCAxLjQ3MyA1LjQ4OHoiLz48cGF0aCBmaWxsPSIjZmY1YzE2IiBkPSJtNC40NzQgMyA3LjU3IDQuNDk5LS4zMDIgMy4wODd6bTQuODQ0IDE1Ljg4MSAzLjMzIDIuNTIyLTMuMzMuOTg3em0zLjA2NC00LjE3LS42NC00LjEyMy00LjA5NyAyLjgwNGgtLjAwMnYuMDAxbC4wMTMgMi44ODYgMS42NjEtMS41Njd6TTI0LjAyNCAzbC03LjU3IDQuNDk5LjMgMy4wODd6TTE5LjE4IDE4Ljg4MWwtMy4zMyAyLjUyMiAzLjMzLjk4N3ptMS42NzQtNS40ODh2LS4wMDJsLTQuMDk3LTIuODA0LS42NCA0LjEyNGgzLjA2NGwxLjY2MiAxLjU2N3oiLz48cGF0aCBmaWxsPSIjZTM0ODA3IiBkPSJtOS4zMTcgMjIuMzktNC44NDQgMS40MzRMMyAxOC44ODFoNi4zMTd6bTMuMDY0LTcuNjguOTI1IDUuOTYyLTEuMjgyLTMuMzE1LTQuMzctMS4wNzggMS42NjItMS41Njh6bTYuNzk5IDcuNjggNC44NDQgMS40MzQgMS40NzMtNC45NDNIMTkuMTh6bS0zLjA2NC03LjY4LS45MjUgNS45NjIgMS4yODItMy4zMTUgNC4zNy0xLjA3OC0xLjY2My0xLjU2OHoiLz48cGF0aCBmaWxsPSIjZmY4ZDVkIiBkPSJtMyAxOC44OCAxLjQ3My01LjQ4OWgzLjE2OWwuMDEyIDIuODg3IDQuMzcgMS4wNzggMS4yODIgMy4zMTQtLjY1OS43My0zLjMzLTIuNTIySDN6bTIyLjQ5NyAwLTEuNDczLTUuNDg5aC0zLjE3bC0uMDEgMi44ODctNC4zNzEgMS4wNzgtMS4yODIgMy4zMTQuNjU5LjczIDMuMzMtMi41MjJoNi4zMTd6TTE2LjQ1NSA3LjQ5NWgtNC40MTNsLS4zIDMuMDg3IDEuNTY1IDEwLjA4NGgxLjg4NGwxLjU2NS0xMC4wODR6Ii8+PC9nPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTMgM2gyMi41djIxLjU2M0gzeiIvPjwvY2xpcFBhdGg+PC9kZWZzPjwvc3ZnPg==";
 }
 
-function isMetaMaskInjected() {
-  if (typeof window === "undefined") return false;
-  const ethereum = window.ethereum as any;
-  if (!ethereum?.isMetaMask) return false;
-  // 排除 Brave 等伪装的 MetaMask
-  if (ethereum.isBraveWallet && !ethereum._events && !ethereum._state)
-    return false;
-  const impersonators = [
-    "isApexWallet", "isAvalanche", "isBitKeep", "isBlockWallet",
-    "isKuCoinWallet", "isMathWallet", "isOkxWallet", "isOKExWallet",
-    "isOneInchIOSWallet", "isOneInchAndroidWallet", "isOpera",
-    "isPhantom", "isPortal", "isRabby", "isTokenPocket",
-    "isTokenary", "isUniswapWallet", "isZerion",
-  ];
-  for (const flag of impersonators) {
-    if (ethereum[flag]) return false;
-  }
-  return true;
-}
-
-// MetaMask 钱包：注入可用 → injected，否则 → WalletConnect 扫码
+// 自定义 MetaMask：只使用 injected()，简单可靠
 function customMetaMaskWallet() {
-  const metaMaskInstalled = isMetaMaskInjected();
-  const shouldUseWalletConnect = !metaMaskInstalled;
-  const mobile = isMobile();
+  const installed =
+    typeof window !== "undefined" && !!(window.ethereum as any)?.isMetaMask;
 
   return {
     id: "metaMask",
@@ -61,8 +34,8 @@ function customMetaMaskWallet() {
     rdns: "io.metamask",
     iconBackground: "#fff",
     iconAccent: "#f6851a",
-    iconUrl: METAMASK_ICON,
-    installed: metaMaskInstalled || undefined,
+    iconUrl: metaMaskIcon(),
+    installed: installed || undefined,
     downloadUrls: {
       android: "https://play.google.com/store/apps/details?id=io.metamask",
       ios: "https://apps.apple.com/us/app/metamask/id1438144202",
@@ -71,23 +44,12 @@ function customMetaMaskWallet() {
         "https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn",
       browserExtension: "https://metamask.io/download",
     },
-    // 桌面端未安装 MetaMask 时，走 WalletConnect 扫码；否则用 injected
-    ...(shouldUseWalletConnect && !mobile
-      ? {
-          qrCode: {
-            getUri: (uri: string) =>
-              `https://metamask.app.link/wc?uri=${encodeURIComponent(uri)}`,
-          },
-          createConnector: getWalletConnectConnector({ projectId }),
-        }
-      : {
-          createConnector: (walletDetails: any): CreateConnectorFn => {
-            return (config: any) => ({
-              ...injected({ target: "metaMask" })(config),
-              ...walletDetails,
-            });
-          },
-        }),
+    createConnector: (walletDetails: any): CreateConnectorFn => {
+      return (config: any) => ({
+        ...injected({ target: "metaMask" })(config),
+        ...walletDetails,
+      });
+    },
   };
 }
 
@@ -97,7 +59,11 @@ const wagmiConfig = createConfig({
     [
       {
         groupName: "Recommended",
-        wallets: [customMetaMaskWallet as any, walletConnectWallet],
+        wallets: [
+          customMetaMaskWallet as any,
+          rabbyWallet,
+          walletConnectWallet,
+        ],
       },
     ],
     { projectId, appName: "Football Betting" },
