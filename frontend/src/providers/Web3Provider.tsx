@@ -63,50 +63,48 @@ function customMetaMaskWallet() {
   };
 }
 
-// WalletConnect：wagmi 原生连接器，直接展开 RainbowKit 所需属性
-// 不走 connectorsForWallets 包装，避免状态同步丢失
-// showQrModal=true 让 wagmi 弹窗，不触发 RainbowKit 弹窗（避免 React 19 白屏）
-function makeWcConnector() {
-  const baseFn = walletConnect({
-    projectId,
-    showQrModal: true,
-    metadata: {
-      name: "Football Betting",
-      description: "Football Betting DApp",
-      url: "",
-      icons: [],
+function customWalletConnect() {
+  return {
+    id: "walletConnect",
+    name: "WalletConnect",
+    iconBackground: "#3b99fc",
+    iconAccent: "#3b99fc",
+    iconUrl: WC_ICON,
+    downloadUrls: {
+      android: "https://play.google.com/store/apps/details?id=com.walletconnect",
+      ios: "https://apps.apple.com/app/walletconnect/id1586075497",
+      mobile: "https://walletconnect.com/download",
+      browserExtension: "https://walletconnect.com/download",
     },
-  });
-  return (config: any) => {
-    const connector = baseFn(config);
-    return Object.assign(connector, {
-      iconUrl: WC_ICON,
-      iconBackground: "#3b99fc",
-      iconAccent: "#3b99fc",
-      downloadUrls: {
-        android: "https://play.google.com/store/apps/details?id=com.walletconnect",
-        ios: "https://apps.apple.com/app/walletconnect/id1586075497",
-        mobile: "https://walletconnect.com/download",
-        browserExtension: "https://walletconnect.com/download",
-      },
-    });
+    createConnector: (walletDetails: any): CreateConnectorFn => {
+      return (config: any) => ({
+        ...walletConnect({
+          projectId,
+          showQrModal: true,
+          metadata: {
+            name: "Football Betting",
+            description: "Football Betting DApp",
+            url: "",
+            icons: [],
+          },
+        })(config),
+        ...walletDetails,
+      });
+    },
   };
 }
 
 const wagmiConfig = createConfig({
   chains: supportedChains as any,
-  connectors: [
-    ...connectorsForWallets(
-      [
-        {
-          groupName: "Recommended",
-          wallets: [customMetaMaskWallet as any, rabbyWallet],
-        },
-      ],
-      { projectId, appName: "Football Betting" },
-    ),
-    makeWcConnector() as any,
-  ],
+  connectors: connectorsForWallets(
+    [
+      {
+        groupName: "Recommended",
+        wallets: [customMetaMaskWallet as any, rabbyWallet, customWalletConnect as any],
+      },
+    ],
+    { projectId, appName: "Football Betting" },
+  ),
   ssr: true,
   transports: supportedChains.reduce(
     (acc, chain) => ({ ...acc, [chain.id]: http() }),
