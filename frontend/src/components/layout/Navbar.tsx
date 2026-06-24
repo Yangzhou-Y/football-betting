@@ -115,7 +115,7 @@ export function Navbar() {
 
       {/* Mobile drawer */}
       {menuOpen && (
-        <div className="fixed inset-0 z-[60] sm:hidden">
+        <div className="fixed inset-0 z-[9999] sm:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl flex flex-col">
             {/* Drawer header */}
