@@ -63,13 +63,13 @@ function customMetaMaskWallet() {
   };
 }
 
-// WalletConnect：wagmi 原生连接器 + 手动 rkDetails
+// WalletConnect：wagmi 原生连接器，直接展开 RainbowKit 所需属性
 // 不走 connectorsForWallets 包装，避免状态同步丢失
 // showQrModal=true 让 wagmi 弹窗，不触发 RainbowKit 弹窗（避免 React 19 白屏）
 function makeWcConnector() {
   const baseFn = walletConnect({
     projectId,
-    showQrModal: false,
+    showQrModal: true,
     metadata: {
       name: "Football Betting",
       description: "Football Betting DApp",
@@ -79,20 +79,17 @@ function makeWcConnector() {
   });
   return (config: any) => {
     const connector = baseFn(config);
-    (connector as any).rkDetails = {
-      id: "walletConnect",
-      name: "WalletConnect",
+    return Object.assign(connector, {
+      iconUrl: WC_ICON,
       iconBackground: "#3b99fc",
       iconAccent: "#3b99fc",
-      iconUrl: WC_ICON,
       downloadUrls: {
         android: "https://play.google.com/store/apps/details?id=com.walletconnect",
         ios: "https://apps.apple.com/app/walletconnect/id1586075497",
         mobile: "https://walletconnect.com/download",
         browserExtension: "https://walletconnect.com/download",
       },
-    };
-    return connector;
+    });
   };
 }
 
