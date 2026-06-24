@@ -10,14 +10,13 @@ import { useState, type ReactNode } from "react";
 
 const projectId = "c3ab3b19085ebe629d528e219ebd3546";
 
-const { connectors } = getDefaultWallets({
-  appName: "Football Betting",
-  projectId,
-});
-
 const wagmiConfig = createConfig({
   chains: supportedChains as any,
-  connectors,
+  connectors: getDefaultWallets({
+    appName: "Football Betting",
+    projectId,
+  }).connectors,
+  ssr: true,
   transports: supportedChains.reduce(
     (acc, chain) => ({ ...acc, [chain.id]: http() }),
     {} as Record<number, ReturnType<typeof http>>,
