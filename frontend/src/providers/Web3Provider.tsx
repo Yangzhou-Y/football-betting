@@ -2,19 +2,22 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { RainbowKitProvider, lightTheme, type Locale } from "@rainbow-me/rainbowkit";
-import { injected } from "wagmi/connectors";
+import { RainbowKitProvider, lightTheme, getDefaultWallets, type Locale } from "@rainbow-me/rainbowkit";
 import { supportedChains } from "@/lib/wagmi";
 import { useLang } from "@/lib/i18n";
 import "@rainbow-me/rainbowkit/styles.css";
 import { useState, type ReactNode } from "react";
 
+const projectId = "c3ab3b19085ebe629d528e219ebd3546";
+
+const { connectors } = getDefaultWallets({
+  appName: "Football Betting",
+  projectId,
+});
+
 const wagmiConfig = createConfig({
   chains: supportedChains as any,
-  connectors: [
-    injected({ target: "metaMask" }),
-    injected({ target: "rabby" }),
-  ],
+  connectors,
   transports: supportedChains.reduce(
     (acc, chain) => ({ ...acc, [chain.id]: http() }),
     {} as Record<number, ReturnType<typeof http>>,
