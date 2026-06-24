@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -113,8 +114,8 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile drawer */}
-      {menuOpen && (
+      {/* Mobile drawer — portal to body to avoid Safari backdrop-filter trapping */}
+      {mounted && menuOpen && createPortal(
         <div className="fixed inset-0 z-[9999] sm:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl flex flex-col">
@@ -169,7 +170,8 @@ export function Navbar() {
               )}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </nav>
   );
