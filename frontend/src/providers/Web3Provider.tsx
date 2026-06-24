@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { RainbowKitProvider, lightTheme, type Locale } from "@rainbow-me/rainbowkit";
+import { metaMaskWallet, rabbyWallet } from "@rainbow-me/rainbowkit/wallets";
 import { injected } from "wagmi/connectors";
 import { supportedChains } from "@/lib/wagmi";
 import { useLang } from "@/lib/i18n";
@@ -38,7 +39,14 @@ function RainbowKitInner({ children }: { children: ReactNode }) {
   const locale: Locale = lang === "zh" ? "zh-CN" : "en";
 
   return (
-    <RainbowKitProvider coolMode locale={locale} theme={lightTheme()}>
+    <RainbowKitProvider
+      coolMode
+      locale={locale}
+      theme={lightTheme()}
+      wallets={[
+        { groupName: "Recommended", wallets: [metaMaskWallet, rabbyWallet] },
+      ]}
+    >
       {children}
     </RainbowKitProvider>
   );
