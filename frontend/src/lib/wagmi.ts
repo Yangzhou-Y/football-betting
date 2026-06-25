@@ -16,7 +16,7 @@ export const confluxTestnet = defineChain({
   name: "Conflux eSpace Testnet",
   nativeCurrency: { name: "CFX", symbol: "CFX", decimals: 18 },
   rpcUrls: {
-    default: { http: ["/rpc/conflux-testnet"] },
+    default: { http: ["https://evmtestnet.confluxrpc.com"] },
   },
   blockExplorers: {
     default: { name: "ConfluxScan", url: "https://evmtestnet.confluxscan.io" },
