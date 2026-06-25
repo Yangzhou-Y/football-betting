@@ -4,7 +4,7 @@ import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { MatchStatus } from "@/lib/constants";
-import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
+import { formatUSDT, formatTime, formatTimeShort, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
 import type { MatchStruct } from "@/lib/types";
@@ -41,7 +41,7 @@ export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: Mat
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500 text-white font-bold animate-fire">🔥 {t("badge.bet")}</span>
           )}
         </div>
-        <span className="text-xs text-slate-400">{formatTime(startTime, lang)}</span>
+        <span className="text-[11px] text-slate-400 shrink-0">{formatTimeShort(startTime, lang)}</span>
       </div>
 
       {decodedName && (
@@ -55,13 +55,13 @@ export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: Mat
       </div>
 
       {status === MatchStatus.Settled && (
-        <div className="text-center text-2xl font-bold mb-2">
-          {String(match.homeScore)} : {String(match.awayScore)}
+        <div className="text-center text-2xl font-bold mb-2 tabular-nums">
+          {String(match.homeScore)}∶{String(match.awayScore)}
         </div>
       )}
 
-      <div className="text-center text-sm text-slate-500 mb-2">
-        {t("pool.label")} <span className="font-medium text-slate-700">{formatUSDT(totalPool)} USDT</span>
+      <div className="text-center text-sm text-slate-500 mb-2 whitespace-nowrap">
+        {t("pool.label")} <span className="font-medium text-slate-700 tabular-nums">{formatUSDT(totalPool)} USDT</span>
       </div>
 
       {totalPool > 0n && (
