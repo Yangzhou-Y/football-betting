@@ -18,7 +18,7 @@ const TEAM_MAP: Record<string, string> = {
   "墨西哥": "Mexico", "美国": "USA", "加拿大": "Canada", "哥斯达黎加": "Costa Rica",
   "巴拿马": "Panama",
   "摩洛哥": "Morocco", "塞内加尔": "Senegal", "突尼斯": "Tunisia",
-  "喀麦隆": "Cameroon", "加纳": "Ghana", "尼日利亚": "Nigeria",
+  "喀麦隆": "Cameroon", "加纳": "Ghana", "尼日利亚": "Nigeria", "佛得角": "Cape Verde",
   "埃及": "Egypt", "科特迪瓦": "Ivory Coast", "南非": "South Africa",
   "阿尔及利亚": "Algeria", "刚果（金）": "DR Congo",
   "沙特": "Saudi Arabia", "伊朗": "Iran", "伊拉克": "Iraq", "卡塔尔": "Qatar", "阿联酋": "UAE",
