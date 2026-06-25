@@ -4,7 +4,7 @@ import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { MatchStatus } from "@/lib/constants";
-import { formatUSDT, formatTime, formatTimeShort, decodeTeamName } from "@/lib/utils";
+import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
 import type { MatchStruct } from "@/lib/types";
@@ -41,7 +41,7 @@ export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: Mat
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500 text-white font-bold animate-fire">🔥 {t("badge.bet")}</span>
           )}
         </div>
-        <span className="text-[11px] text-slate-400 shrink-0">{formatTimeShort(startTime, lang)}</span>
+        <span className="text-xs text-slate-400 shrink-0">{formatTime(startTime, lang)}</span>
       </div>
 
       {decodedName && (
