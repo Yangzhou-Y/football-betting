@@ -144,11 +144,40 @@ ADMIN_ACTION=remove ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --netwo
 ## 技术栈
 
 - **Solidity 0.8.21** + Hardhat — 智能合约
-- **Next.js 15** + TypeScript — 前端
-- **wagmi v3** + **RainbowKit** + **viem** — 钱包连接与合约交互
-- **Tailwind CSS** — 样式
-- **TanStack Query** — 数据缓存
+- **Next.js 16** + React 19 + TypeScript — 前端
+- **wagmi v2** + **RainbowKit v2** + **viem** — 钱包连接与合约交互
+- **Tailwind CSS v4** — 样式
+- **TanStack Query v5** — 数据缓存
 - **ethers.js v6** — 脚本与测试
+
+## 钱包连接
+
+| 平台 | 方式 | 稳定性 |
+|------|------|--------|
+| 桌面 Chrome/Edge | MetaMask 拓展 → injected 直连 | 100% |
+| 桌面任意浏览器 | Rabby 拓展 → injected 直连 | 正常 |
+| 手机 MetaMask App | 内置浏览器 → injected 直连 | 100% |
+| 桌面/手机 WalletConnect | 暂不支持（MetaMask WC 实验性功能不稳定） | — |
+
+### 实现细节
+
+- MetaMask 检测使用三级优先级：`_metamask` 内部 API → EIP-6963 providers → isMetaMask 排除伪装者
+- 通过 `connectorsForWallets` 让 MetaMask 按钮在所有平台（含手机）出现
+- RPC URL 使用公开地址 `https://evmtestnet.confluxrpc.com`（非相对路径），确保 WalletConnect/MetaMask App 可访问
+
+## 分支 & 开发日志
+
+| 分支 | 用途 |
+|------|------|
+| `main` | 生产分支，已开保护 |
+| `fix/mobile-WalletConnect` | WalletConnect 实验（暂停，等 MetaMask 转正） |
+| `fix/mobile-ui2` | 移动端 UI 修复：统计卡片横排、中英基线对齐、禁用缩放等 |
+
+| 日志 | 内容 |
+|------|------|
+| [2026-06-23](2026-06-23-开发日志.md) | Code Review、Gas v4、移动端响应式、类型安全 |
+| [2026-06-24](2026-06-24-开发日志.md) | 移动端钱包检测、MetaMask 图标、WalletConnect 排查、RPC 修复 |
+| [2026-06-25](2026-06-25-开发日志.md) | WC 定论、移动端 UI 精细化、佛得角、favicon |
 
 ## 安全
 
