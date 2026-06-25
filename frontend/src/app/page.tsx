@@ -103,7 +103,7 @@ export default function HomePage() {
         <section>
           <h2 className="text-lg font-semibold mb-3">{t("section.upcoming")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {upcomingMatches.slice(0, 5).map(({ match, id }) => (
+            {upcomingMatches.slice(0, 6).map(({ match, id }) => (
               <MatchCard key={id} match={match} matchId={id} {...getBetInfo(id)} />
             ))}
           </div>
