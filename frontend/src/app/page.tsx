@@ -22,6 +22,7 @@
 
 import { useAllMatches } from "@/hooks/useMatches";
 import { useUserAllBets } from "@/hooks/useUserBets";
+import { useParticipantCounts } from "@/hooks/useParticipantCounts";
 import { useDeploymentConfig } from "@/lib/config";
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStatus } from "@/lib/constants";
@@ -35,6 +36,7 @@ export default function HomePage() {
   const { address, isConnected } = useAccount();
   const { data: matches, isLoading, isError, error } = useAllMatches();
   const { data: betsRaw } = useUserAllBets();
+  const participantCounts = useParticipantCounts();
   const { isReady } = useDeploymentConfig();
 
   if (!isReady) {
@@ -112,7 +114,7 @@ export default function HomePage() {
                 .sort((a, b) => Number(b.match.totalPool - a.match.totalPool))
                 .slice(0, 3)
                 .map(({ match, id }) => (
-                  <MatchCard key={id} match={match} matchId={id} {...getBetInfo(id)} />
+                  <MatchCard key={id} match={match} matchId={id} participantCount={participantCounts.get(id)} {...getBetInfo(id)} />
                 ))}
             </div>
           </section>
@@ -124,7 +126,7 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold mb-3">{t("section.upcoming")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcomingMatches.slice(0, 6).map(({ match, id }) => (
-              <MatchCard key={id} match={match} matchId={id} {...getBetInfo(id)} />
+              <MatchCard key={id} match={match} matchId={id} participantCount={participantCounts.get(id)} {...getBetInfo(id)} />
             ))}
           </div>
         </section>

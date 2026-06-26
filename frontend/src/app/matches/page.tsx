@@ -30,6 +30,7 @@ import { useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { useAllMatches } from "@/hooks/useMatches";
 import { useUserAllBets } from "@/hooks/useUserBets";
+import { useParticipantCounts } from "@/hooks/useParticipantCounts";
 import { useMounted } from "@/hooks/useMounted";
 import { MatchCard } from "@/components/match/MatchCard";
 import { MatchStatus } from "@/lib/constants";
@@ -65,6 +66,7 @@ export default function MatchesPage() {
 
   const { data: matches, isLoading, isError, error } = useAllMatches();
   const { data: betsRaw } = useUserAllBets();
+  const participantCounts = useParticipantCounts();
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
@@ -167,7 +169,7 @@ export default function MatchesPage() {
             const won = hasBet ? m.result === betOnMap.get(mid) : undefined;
             const claimed = hasBet ? claimedMap.get(mid) : undefined;
             return (
-              <MatchCard key={id} match={m} matchId={id} hasBet={hasBet} won={won} claimed={claimed} />
+              <MatchCard key={id} match={m} matchId={id} hasBet={hasBet} won={won} claimed={claimed} participantCount={participantCounts.get(id)} />
             );
           })}
         </div>

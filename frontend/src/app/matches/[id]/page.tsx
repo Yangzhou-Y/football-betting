@@ -43,7 +43,7 @@ import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
 import type { MatchStruct, UserBetData } from "@/lib/types";
-import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
+import { formatUSDT, formatTime, decodeTeamName, calcOdds } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { parseContractError } from "@/lib/errors";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -137,6 +137,7 @@ export default function MatchDetailPage() {
 
 function PoolBars({ home, draw, away, total, allowDraw = true }: { home: bigint; draw: bigint; away: bigint; total: bigint; allowDraw?: boolean }) {
   const t = useT();
+  const { platformFeeRate } = useDeploymentConfig();
   const total_ = total > 0n ? total : 1n;
   const hp = Number((home * 100n) / total_);
   const dp = Number((draw * 100n) / total_);
@@ -146,23 +147,25 @@ function PoolBars({ home, draw, away, total, allowDraw = true }: { home: bigint;
     <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
       <h3 className="text-sm font-semibold mb-3">{t("pool.title")} · <AmountDisplay amount={total} /></h3>
       <div className="space-y-2">
-        <PoolRow label={t("pool.homeWin")} pct={hp} amount={home} color="bg-blue-500" />
-        {allowDraw && <PoolRow label={t("pool.draw")} pct={dp} amount={draw} color="bg-gray-400" />}
-        <PoolRow label={t("pool.awayWin")} pct={ap} amount={away} color="bg-red-400" />
+        <PoolRow label={t("pool.homeWin")} pct={hp} amount={home} odds={calcOdds(home, total, platformFeeRate)} color="bg-blue-500" />
+        {allowDraw && <PoolRow label={t("pool.draw")} pct={dp} amount={draw} odds={calcOdds(draw, total, platformFeeRate)} color="bg-gray-400" />}
+        <PoolRow label={t("pool.awayWin")} pct={ap} amount={away} odds={calcOdds(away, total, platformFeeRate)} color="bg-red-400" />
       </div>
     </div>
   );
 }
 
-function PoolRow({ label, pct, amount, color }: { label: string; pct: number; amount: bigint; color: string }) {
+function PoolRow({ label, pct, amount, odds, color }: { label: string; pct: number; amount: bigint; odds?: string | null; color: string }) {
+  const t = useT();
   return (
     <div className="flex items-center gap-3">
       <span className="text-sm w-16 text-right">{label}</span>
       <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full transition`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-sm w-20 text-right text-slate-500">
+      <span className="text-sm w-28 text-right text-slate-500 tabular-nums">
         <AmountDisplay amount={amount} /> ({pct}%)
+        {odds && <span className="text-xs text-slate-400 ml-1">{t("pool.odds")} {odds}</span>}
       </span>
     </div>
   );
@@ -334,6 +337,19 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
             className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <span className="text-sm text-slate-500">USDT</span>
+        </div>
+        <div className="flex gap-2 mt-2">
+          {["1", "10", "100"].map((amt) => (
+            <button
+              key={amt}
+              type="button"
+              onClick={() => setBetAmount(amt)}
+              disabled={loading}
+              className="flex-1 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition"
+            >
+              {amt}
+            </button>
+          ))}
         </div>
         <p className="text-xs text-slate-400 mt-1">
           {t("bet.minAmount")} <AmountDisplay amount={minBet} />

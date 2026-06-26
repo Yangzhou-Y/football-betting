@@ -28,6 +28,7 @@
  */
 "use client";
 
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useUserAllBets } from "@/hooks/useUserBets";
 import { useAllMatches } from "@/hooks/useMatches";
@@ -50,6 +51,7 @@ export default function MyBetsPage() {
   const { address, isConnected } = useAccount();
   const { data: betsRaw } = useUserAllBets();
   const { data: matches } = useAllMatches();
+  const [page, setPage] = useState(0);
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
@@ -87,6 +89,13 @@ export default function MyBetsPage() {
     }
   }
 
+  // 分页：每页最多 10 条，按 matchId 降序（较新的投注排在前）
+  const PAGE_SIZE = 10;
+  const order = matchIds.map((_, i) => i).sort((a, b) => Number(matchIds[b] - matchIds[a]));
+  const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pageOrder = order.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
   return (
     <div className="space-y-6" key={address}>
       <h1 className="text-xl font-bold">{t("myBets.title")}</h1>
@@ -103,7 +112,7 @@ export default function MyBetsPage() {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div key={`d-${safePage}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
@@ -116,7 +125,8 @@ export default function MyBetsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {matchIds.map((mid, i) => {
+              {pageOrder.map((i) => {
+                const mid = matchIds[i];
                 const match = matchList.find((_m, j) => j + 1 === Number(mid));
                 return (
                   <tr key={i} className="hover:bg-slate-50">
@@ -166,8 +176,9 @@ export default function MyBetsPage() {
       </div>
 
       {/* Mobile card list */}
-      <div className="sm:hidden space-y-3">
-        {matchIds.map((mid, i) => {
+      <div key={`m-${safePage}`} className="sm:hidden space-y-3 animate-page-enter">
+        {pageOrder.map((i) => {
+          const mid = matchIds[i];
           const match = matchList.find((_m, j) => j + 1 === Number(mid));
           const deleted = !match || match.startTime === 0n;
           return (
@@ -212,6 +223,30 @@ export default function MyBetsPage() {
           );
         })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 py-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            aria-label={t("page.prev")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ←
+          </button>
+          <span className="text-sm text-slate-500 tabular-nums">
+            {safePage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage >= totalPages - 1}
+            aria-label={t("page.next")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

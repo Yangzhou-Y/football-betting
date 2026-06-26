@@ -142,6 +142,11 @@ const dict: Record<Lang, Record<string, string>> = {
     "pool.draw": "平局",
     "pool.awayWin": "客队胜",
     "pool.label": "奖池:",
+    "pool.odds": "赔率",
+    "card.participants": "人参与",
+    "bet.quickAmount": "快捷金额",
+    "page.prev": "上一页",
+    "page.next": "下一页",
 
     // 管理
     "admin.title": "管理后台",
@@ -455,6 +460,11 @@ const dict: Record<Lang, Record<string, string>> = {
     "pool.draw": "Draw",
     "pool.awayWin": "Away Win",
     "pool.label": "Pool:",
+    "pool.odds": "Odds",
+    "card.participants": "players",
+    "bet.quickAmount": "Quick amount",
+    "page.prev": "Previous",
+    "page.next": "Next",
 
     // Admin
     "admin.title": "Admin Panel",

@@ -4,8 +4,9 @@ import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { MatchStatus } from "@/lib/constants";
-import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
+import { formatUSDT, formatTime, decodeTeamName, calcOdds } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
+import { useDeploymentConfig } from "@/lib/config";
 import { useT, useLang } from "@/lib/i18n";
 import type { MatchStruct } from "@/lib/types";
 
@@ -31,11 +32,16 @@ import type { MatchStruct } from "@/lib/types";
  *   - 已投注徽章：橙色 + emoji 🔥 + animate-fire
  *   - 比例条：蓝(主胜)/灰(平局)/红(客胜)，宽度由奖池占比决定
  */
-export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: MatchStruct; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean }) {
+export function MatchCard({ match, matchId, hasBet, won, claimed, participantCount }: { match: MatchStruct; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean; participantCount?: number }) {
   const t = useT();
   const { lang } = useLang();
+  const { platformFeeRate } = useDeploymentConfig();
   const { status, result, matchName, homeTeam, awayTeam, poolHome, poolDraw, poolAway, totalPool, startTime } = match;
   const decodedName = translateName(decodeTeamName(matchName), lang);
+
+  const homeOdds = calcOdds(poolHome, totalPool, platformFeeRate);
+  const drawOdds = calcOdds(poolDraw, totalPool, platformFeeRate);
+  const awayOdds = calcOdds(poolAway, totalPool, platformFeeRate);
 
   const settled = status === MatchStatus.Settled;
   const showClaimable = hasBet && settled && won && !claimed;
@@ -82,18 +88,28 @@ export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: Mat
         </div>
       )}
 
-      <div className="text-center text-sm text-slate-500 mb-2 whitespace-nowrap">
-        {t("pool.label")} <span className="font-medium text-slate-700 tabular-nums">{formatUSDT(totalPool)} USDT</span>
+      <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-2 whitespace-nowrap">
+        <span>{t("pool.label")} <span className="font-medium text-slate-700 tabular-nums">{formatUSDT(totalPool)} USDT</span></span>
+        {participantCount != null && participantCount > 0 && (
+          <span className="text-xs text-slate-400">· {participantCount} {t("card.participants")}</span>
+        )}
       </div>
 
       {totalPool > 0n && (
-        <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-          <div className="bg-blue-500" style={{ width: `${homePct}%` }} title={`${t("result.homeWin")} ${homePct}%`} />
-          {match.allowDraw !== false && (
-            <div className="bg-gray-400" style={{ width: `${drawPct}%` }} title={`${t("result.draw")} ${drawPct}%`} />
-          )}
-          <div className="bg-red-400" style={{ width: `${awayPct}%` }} title={`${t("result.awayWin")} ${awayPct}%`} />
-        </div>
+        <>
+          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
+            <div className="bg-blue-500" style={{ width: `${homePct}%` }} title={`${t("result.homeWin")} ${homePct}%`} />
+            {match.allowDraw !== false && (
+              <div className="bg-gray-400" style={{ width: `${drawPct}%` }} title={`${t("result.draw")} ${drawPct}%`} />
+            )}
+            <div className="bg-red-400" style={{ width: `${awayPct}%` }} title={`${t("result.awayWin")} ${awayPct}%`} />
+          </div>
+          <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 mt-1.5 text-[10px] text-slate-400`}>
+            <span className="text-center">{t("pool.odds")} {homeOdds ?? "-"}</span>
+            {match.allowDraw !== false && <span className="text-center">{t("pool.odds")} {drawOdds ?? "-"}</span>}
+            <span className="text-center">{t("pool.odds")} {awayOdds ?? "-"}</span>
+          </div>
+        </>
       )}
 
       <div className="mt-3 text-center">

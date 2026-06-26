@@ -61,6 +61,25 @@ export function parseUSDT(amount: string): bigint {
   return parseUnits(amount, USDT_DECIMALS);
 }
 
+/**
+ * 计算某个选项的当前赔率（Parimutuel 快照赔率）
+ *
+ * 赔率 = 可分配奖池 / 该选项奖池
+ *   可分配奖池 = 总奖池 × (1 - 手续费率)
+ *
+ * @param optionPool 该选项的奖池金额（最小单位）
+ * @param totalPool  总奖池金额（最小单位）
+ * @param feeRate    平台手续费率（基点，如 200 = 2%）
+ * @returns 形如 "2.10" 的赔率字符串；无法计算（奖池为 0）时返回 null
+ */
+export function calcOdds(optionPool: bigint, totalPool: bigint, feeRate: number): string | null {
+  if (optionPool <= 0n || totalPool <= 0n) return null;
+  const distributable = (totalPool * BigInt(10000 - feeRate)) / 10000n;
+  // 放大 100 倍后取整，保留两位小数，避免 bigint→Number 精度丢失
+  const oddsX100 = (distributable * 100n) / optionPool;
+  return (Number(oddsX100) / 100).toFixed(2);
+}
+
 // ============================================================================
 // 通用工具
 // ============================================================================
