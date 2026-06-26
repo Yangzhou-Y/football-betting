@@ -44,20 +44,6 @@ export function useMatchCount() {
   });
 }
 
-/** 分页获取比赛列表（page 从 0 开始） */
-export function useMatchesPaginated(page: number, pageSize: number) {
-  const { contractAddress, isReady, chainId } = useDeploymentConfig();
-
-  return useReadContract({
-    address: contractAddress!,
-    abi: FootballBettingABI.abi,
-    functionName: "getMatchesPaginated",
-    args: [page, pageSize],
-    chainId,
-    query: { enabled: isReady && contractAddress !== null && page >= 0 && pageSize > 0 },
-  });
-}
-
 export function useContractInfo() {
   const { contractAddress, isReady, chainId } = useDeploymentConfig();
 

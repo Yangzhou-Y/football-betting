@@ -215,7 +215,6 @@ contract FootballBetting {
         uint256 indexed matchId, address indexed user, uint256 rewardAmount
     );
     event FeeWithdrawn(address indexed owner, uint256 amount);
-    event FeeRefundShortfall(uint256 indexed matchId, uint256 oldFee, uint256 available);
     event MatchReopened(uint256 indexed matchId);
     event MatchDeleted(uint256 indexed matchId);
     event AdminAdded(address indexed admin);
@@ -231,7 +230,6 @@ contract FootballBetting {
     error ContractPaused();
     error AlreadyPaused();
     error NotPaused();
-    error DeadlineNotReached();
     error FeeRateTooHigh();
     error InvalidUsdtAddress();
     error StartTimeNotFuture();
@@ -268,13 +266,8 @@ contract FootballBetting {
     // 五、修饰器
     // ========================================================================
 
-    modifier onlyAdmin() {
-        if (msg.sender != owner && !admins[msg.sender]) revert NotOwner();
-        _;
-    }
-
     modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
+        if (msg.sender != owner && !admins[msg.sender]) revert NotOwner();
         _;
     }
 
@@ -336,7 +329,7 @@ contract FootballBetting {
         bool allowDraw
     )
         external
-        onlyAdmin
+        onlyOwner
         returns (uint256)
     {
         if (startTime <= block.timestamp) revert StartTimeNotFuture();
@@ -368,7 +361,7 @@ contract FootballBetting {
     }
 
     /// @notice 开放比赛投注（Created → Open）
-    function openMatch(uint256 matchId) external onlyAdmin {
+    function openMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Created) revert MatchNotCreated();
@@ -377,7 +370,7 @@ contract FootballBetting {
         emit MatchOpened(matchId);
     }
 
-    function deleteMatch(uint256 matchId) external onlyAdmin {
+    function deleteMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Created) revert MatchNotCreated();
@@ -388,7 +381,7 @@ contract FootballBetting {
         emit MatchDeleted(matchId);
     }
 
-    function closeMatch(uint256 matchId) external onlyAdmin {
+    function closeMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Open) revert MatchNotOpen();
@@ -401,7 +394,7 @@ contract FootballBetting {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Open) revert MatchNotOpen();
-        if (block.timestamp < m.deadline) revert DeadlineNotReached();
+        if (block.timestamp < m.deadline) revert DeadlineNotPassed();
 
         m.status = MatchStatus.Closed;
         emit MatchClosed(matchId);
@@ -413,7 +406,7 @@ contract FootballBetting {
      *         仅当手续费未被提取时才能完整退还；若已部分提取则退还剩余部分。
      *         若有用户已领奖则禁止回退，防止合约资不抵债。
      */
-    function reopenMatch(uint256 matchId) external onlyAdmin {
+    function reopenMatch(uint256 matchId) external onlyOwner {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (!m.settled) revert MatchNotSettled();
@@ -422,12 +415,11 @@ contract FootballBetting {
         // 计算之前结算时扣除的手续费
         uint256 oldFee = _calculateFee(m, m.result);
 
-        // 退还手续费（若平台余额不足，仅退还剩余部分并发出事件）
+        // 退还手续费（若平台余额不足，仅退还剩余部分）
         if (oldFee > 0) {
             if (platformBalance >= oldFee) {
                 platformBalance -= oldFee;
             } else {
-                emit FeeRefundShortfall(matchId, oldFee, platformBalance);
                 platformBalance = 0;
             }
         }
@@ -443,25 +435,27 @@ contract FootballBetting {
     }
 
     /// @notice 紧急暂停合约，禁用所有用户操作（投注/领奖/结算）
-    function pause() external onlyAdmin {
+    function pause() external onlyOwner {
         if (paused) revert AlreadyPaused();
         paused = true;
         emit Paused(msg.sender);
     }
 
-    function unpause() external onlyAdmin {
+    function unpause() external onlyOwner {
         if (!paused) revert NotPaused();
         paused = false;
         emit Unpaused(msg.sender);
     }
 
-    function addAdmin(address admin) external onlyOwner {
+    function addAdmin(address admin) external {
+        if (msg.sender != owner) revert NotOwner();
         if (admin == address(0)) revert InvalidAdmin();
         admins[admin] = true;
         emit AdminAdded(admin);
     }
 
-    function removeAdmin(address admin) external onlyOwner {
+    function removeAdmin(address admin) external {
+        if (msg.sender != owner) revert NotOwner();
         if (!admins[admin]) revert NotAdmin();
         admins[admin] = false;
         emit AdminRemoved(admin);
@@ -478,7 +472,7 @@ contract FootballBetting {
      */
     function recordResult(uint256 matchId, uint8 homeScore, uint8 awayScore)
         external
-        onlyAdmin
+        onlyOwner
         whenNotPaused
     {
         Match storage m = matches[matchId];
@@ -571,7 +565,7 @@ contract FootballBetting {
                 _removeFromPool(m, oldBetOn, oldAmount);
                 _addToPool(m, betOn, betAmount);
                 b.betOn = betOn;
-                // Clear old reward before writing new amount (same slot, compiler may combine)
+                // Write amount-with-reward-zero in one slot write to avoid double SSTORE
                 b.reward = 0;
                 b.amount = betAmount;
 
@@ -675,7 +669,7 @@ contract FootballBetting {
     /// @notice 提取平台手续费（仅管理员，USDT 转账）
     /// @dev    平台手续费来自：① 正常结算时 2% 抽成  ② 无人猜中时全部奖池归入
     ///         Effects before Interactions：platformBalance 先归零，再转 USDT
-    function withdrawFee() external onlyAdmin noReentrancy {
+    function withdrawFee() external onlyOwner noReentrancy {
         uint256 amount = platformBalance;
         if (amount == 0) revert NoFees();
         platformBalance = 0;
@@ -740,25 +734,6 @@ contract FootballBetting {
             all[i - 1] = matches[i];
         }
         return all;
-    }
-
-    /// @notice 分页获取比赛列表（每页 pageSize 条，page 从 0 开始）
-    function getMatchesPaginated(uint256 page, uint256 pageSize)
-        external
-        view
-        returns (Match[] memory result, uint256 totalMatches)
-    {
-        totalMatches = matchCounter;
-        if (pageSize == 0) return (new Match[](0), totalMatches);
-        uint256 start = page * pageSize + 1;
-        if (start > totalMatches) return (new Match[](0), totalMatches);
-        uint256 end = start + pageSize;
-        if (end > totalMatches + 1) end = totalMatches + 1;
-        uint256 size = end - start;
-        result = new Match[](size);
-        for (uint256 i = 0; i < size; i++) {
-            result[i] = matches[start + i];
-        }
     }
 
     /// @notice 获取用户全部投注记录（返回 5 个并行数组）
@@ -883,16 +858,12 @@ contract FootballBetting {
     function _removeFromPool(Match storage m, Result r, uint128 amount) internal {
         unchecked {
             if (r == Result.HomeWin) {
-                assert(m.poolHome >= amount);
                 m.poolHome -= amount;
             } else if (r == Result.Draw) {
-                assert(m.poolDraw >= amount);
                 m.poolDraw -= amount;
             } else {
-                assert(m.poolAway >= amount);
                 m.poolAway -= amount;
             }
-            assert(m.totalPool >= amount);
             m.totalPool -= amount;
         }
     }

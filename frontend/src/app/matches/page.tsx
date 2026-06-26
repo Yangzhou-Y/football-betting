@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import { useMatchesPaginated } from "@/hooks/useMatches";
+import { useAllMatches } from "@/hooks/useMatches";
 import { useUserAllBets } from "@/hooks/useUserBets";
 import { useMounted } from "@/hooks/useMounted";
 import { MatchCard } from "@/components/match/MatchCard";
@@ -36,7 +36,7 @@ export default function MatchesPage() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
 
-  const { data: paginated, isLoading, isError, error } = useMatchesPaginated(page, PAGE_SIZE);
+  const { data: matches, isLoading, isError, error } = useAllMatches();
   const { data: betsRaw } = useUserAllBets();
 
   if (!mounted) {
@@ -64,13 +64,11 @@ export default function MatchesPage() {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
 
-  const raw = paginated as [MatchStruct[], bigint] | undefined;
-  const matchList: MatchStruct[] = raw?.[0] ?? [];
-  const totalMatches = raw?.[1] ? Number(raw[1]) : 0;
-  const totalPages = Math.max(1, Math.ceil(totalMatches / PAGE_SIZE));
+  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
-  const validMatches = matchList
-    .map((m, i) => ({ match: m, id: page * PAGE_SIZE + i + 1 }))
+  // Build full list of valid matches with their IDs
+  const allValid = matchList
+    .map((m, i) => ({ match: m, id: i + 1 }))
     .filter(({ match }) => match.startTime > 0n);
 
   const betIds = new Set<bigint>();
@@ -85,7 +83,8 @@ export default function MatchesPage() {
     }
   }
 
-  const filtered = validMatches.filter(({ match: m, id }) => {
+  // Apply filter to the full list
+  const filtered = allValid.filter(({ match: m, id }) => {
     if (filter === "my") return betIds.has(BigInt(id));
     return FILTERS.find((f) => f.key === filter)?.match(m) ?? true;
   });
@@ -96,6 +95,11 @@ export default function MatchesPage() {
     if (aBet !== bBet) return aBet - bBet;
     return Number(a.match.startTime - b.match.startTime);
   });
+
+  // Client-side pagination: slice the filtered list
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paged = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="space-y-6" key={address}>
@@ -112,7 +116,7 @@ export default function MatchesPage() {
         {FILTERS.map((f) => (
           <button
             key={f.key}
-            onClick={() => setFilter(f.key)}
+            onClick={() => { setFilter(f.key); setPage(0); }}
             className={`px-4 py-1.5 rounded-full text-sm transition ${
               filter === f.key
                 ? "bg-blue-600 text-white"
@@ -124,13 +128,13 @@ export default function MatchesPage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {paged.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <p>{t("section.noMatches")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(({ match: m, id }) => {
+          {paged.map(({ match: m, id }) => {
             const mid = BigInt(id);
             const hasBet = betIds.has(mid);
             const won = hasBet ? m.result === betOnMap.get(mid) : undefined;
@@ -149,17 +153,17 @@ export default function MatchesPage() {
             disabled={page === 0}
             className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            ← {t("nav.prev") || "上一页"}
+            ← {t("filter.prev") || "上一页"}
           </button>
           <span className="text-sm text-slate-500">
-            {page + 1} / {totalPages}
+            {safePage + 1} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            {t("nav.next") || "下一页"} →
+            {t("filter.next") || "下一页"} →
           </button>
         </div>
       )}
