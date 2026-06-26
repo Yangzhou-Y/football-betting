@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
+import { U } from "./shared/usdt";
 
 async function main() {
   const record = JSON.parse(fs.readFileSync(path.join(__dirname,"..","deployments","localhost.json"),"utf-8"));
@@ -24,7 +25,7 @@ async function main() {
   console.log(`Allowance: ${ethers.formatUnits(allowance, 6)} USDT`);
   console.log(`Balance: ${ethers.formatUnits(balance, 6)} USDT`);
 
-  const betAmount = ethers.parseUnits("0.05", 6); // 0.05 USDT
+  const betAmount = U("0.05"); // 0.05 USDT
   console.log(`\nPlacing bet: 0.05 USDT on HomeWin...`);
 
   try {

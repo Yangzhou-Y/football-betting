@@ -13,6 +13,7 @@ import { ethers } from "hardhat";
 import { FootballBetting__factory, MockERC20__factory } from "../typechain-types";
 import * as fs from "fs";
 import * as path from "path";
+import { U as u, FU as fu } from "./shared/usdt";
 
 function loadDeployRecord(): { address: string; usdtAddress: string } {
   const network = process.env.HARDHAT_NETWORK || "localhost";
@@ -49,8 +50,6 @@ const hr = (title?: string) => {
 };
 
 const short = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-const u = (n: string) => ethers.parseUnits(n, 18);
-const fu = (n: bigint) => ethers.formatUnits(n, 18);
 
 const fmtGas = (g: bigint) => (g > 1_000_000n ? `${(Number(g) / 1_000_000).toFixed(2)}M` : g.toString());
 
@@ -134,7 +133,7 @@ async function main(): Promise<void> {
   // ══════════════════════════════════════════════════════════════
   const cnt = await contract.matchCounter();
   console.log(`  ✓  共创建 ${cnt} 场比赛`);
-  console.log(`  ✓  其中 ${matches.filter(m=>m.open).length} 场已开放投注（#4-#8）`);
+  console.log(`  ✓  其中 ${matches.filter(m=>m.open).length} 场已开放投注`);
   console.log(`  ✓  其余比赛处于"已创建"状态，管理员可在后台手动开放`);
   console.log(`  ✓  比赛名称使用 bytes32 存储，支持中英文双向翻译`);
   console.log();

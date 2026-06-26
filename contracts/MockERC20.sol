@@ -5,7 +5,7 @@ pragma solidity ^0.8.21;
  * ============================================================================
  * @title MockERC20 — 测试用 ERC-20 代币
  *
- * @notice 模拟真实 USDT 的行为和精度（6 位小数），专供 Hardhat 测试使用。
+ * @notice 模拟 Faucet USDT 的行为和精度（18 位小数），专供 Hardhat 测试使用。
  *         公开 mint 函数允许任何测试账户无限量获取代币。
  *
  * @dev    【这个合约永远不会部署到真实链上】
@@ -15,19 +15,18 @@ pragma solidity ^0.8.21;
  *         【为什么不用 .env 里的 USDT 地址做测试？】
  *         1. Hardhat 本地链没有真实的 USDT 合约，需要 mock
  *         2. 公开 mint 让测试脚本可以任意分发给测试账户
- *         3. 行为与真实 USDT 一致（6 位小数、transferFrom/approve 标准接口）
+ *         3. 行为与 Faucet USDT 一致（18 位小数、transferFrom/approve 标准接口）
  *
  *         【为啥不 import OpenZeppelin 的 ERC20？】
  *         1. 测试专用合约不需要审计级别的安全实现
  *         2. 手写 ~50 行，编译快、依赖少
  *         3. 功能完全等价（transfer/transferFrom/approve/mint）
  *
- *         【USDT 的精度（decimals=6）与其他常见代币对比】
- *         - USDT: 6 位小数 — 1 USDT = 10^6 = 1,000,000 最小单位
- *         - USDC: 6 位小数 — 同上
- *         - DAI:  18 位小数 — 1 DAI = 10^18
- *         - ETH:  18 位小数 — 1 ETH = 10^18
- *         本合约用 6 位小数模拟 USDT，确保测试中的金额计算与真实 USDT 一致。
+ *         【当前 Faucet USDT 的精度（decimals=18）与其他常见代币对比】
+ *         - Faucet USDT (Conflux 测试网): 18 位 — 1 USDT = 10^18
+ *         - 真实 USDT / USDC:              6 位 — 1 USDT = 10^6
+ *         - DAI / ETH / CFX:              18 位 — 1 = 10^18
+ *         本合约用 18 位小数匹配 Conflux 测试网 Faucet USDT，确保与前端一致。
  * ============================================================================
  */
 contract MockERC20 {
@@ -54,7 +53,7 @@ contract MockERC20 {
      * @dev    Hardhat 测试中任何人可调用 mint 给自己或其他账户，
      *         真实 USDT 合约中此函数不存在或仅 owner 可调用。
      * @param to     接收代币的地址
-     * @param amount 铸造数量（最小单位，6 位小数）
+     * @param amount 铸造数量（最小单位，18 位小数）
      */
     function mint(address to, uint256 amount) external {
         totalSupply += amount;

@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
+import { U } from "./shared/usdt";
 
 async function main() {
   const record = JSON.parse(fs.readFileSync(path.join(__dirname,"..","deployments","localhost.json"),"utf-8"));
@@ -26,14 +27,15 @@ async function main() {
   const now = block!.timestamp; // Use BLOCK time, not system time
   const startTime = now + 3600;
   const deadline = now + 1800;
-  const minBet = ethers.parseUnits("0.01", 6);
+  const minBet = U("0.01");
 
+  const matchName = ethers.encodeBytes32String("测试赛");
   const home = ethers.encodeBytes32String("法国");
   const away = ethers.encodeBytes32String("阿根廷");
 
   console.log(`\nCreating match: now=${now}, start=${startTime}, deadline=${deadline}`);
   try {
-    const tx = await contract.createMatch(home, away, startTime, deadline, minBet, 0n);
+    const tx = await contract.createMatch(matchName, home, away, startTime, deadline, minBet, 0n, true);
     console.log("tx:", tx.hash);
     const receipt = await tx.wait();
     console.log("✓ SUCCESS! Block #" + receipt!.blockNumber);

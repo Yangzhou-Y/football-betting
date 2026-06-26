@@ -40,7 +40,7 @@ export function decodeTeamName(hex: string): string {
 }
 
 // ============================================================================
-// USDT 金额格式化（6 位小数）
+// USDT 金额格式化（18 位小数）
 // ============================================================================
 
 /** Format USDT amount from minimum units to display string (e.g., 50000 → "0.05")

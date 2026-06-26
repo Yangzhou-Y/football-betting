@@ -8,6 +8,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
+import { USDT_DECIMALS } from "./shared/usdt";
 
 const PLATFORM_FEE_RATE = 200;
 const ADDITIONAL_ADMINS: string[] = [
@@ -68,7 +69,7 @@ async function main(): Promise<void> {
         // 给所有可用测试账户 mint USDT
         const signers = await ethers.getSigners();
         for (let i = 0; i < signers.length; i++) {
-            await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 18));
+            await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", USDT_DECIMALS));
             console.log(`  ✓ 已为账户 [${i}] mint 100,000 USDT  ${signers[i].address}`);
         }
     } else {
@@ -96,7 +97,7 @@ async function main(): Promise<void> {
                 console.log(`  ✓ MockERC20 已部署  ${usdtAddress}`);
                 const signers = await ethers.getSigners();
                 for (let i = 0; i < signers.length; i++) {
-                    await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", 18));
+                    await mockUsdt.mint(signers[i].address, ethers.parseUnits("100000", USDT_DECIMALS));
                     console.log(`  ✓ 已为账户 [${i}] mint 100,000 USDT  ${signers[i].address}`);
                 }
             }

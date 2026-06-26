@@ -13,7 +13,7 @@
  *   合约通过 msg.value 收 ETH        合约通过 transferFrom 拉 USDT  ← 需预先 approve
  *   call{value: X}("") 发 ETH      usdt.transfer(user, X) 发 USDT
  *   检查 provider.getBalance()      检查 mockUsdt.balanceOf()
- *   ethers.parseEther("0.05")       ethers.parseUnits("0.05", 6)  ← 18→6 位小数
+ *   ethers.parseEther("0.05")       ethers.parseUnits("0.05", 18)  ← 统一 18 位小数
  *
  * 【测试账户布局（Hardhat 本地链预设的 20 个账户）】
  *   [0] owner  — 合约部署者（管理员）
@@ -30,6 +30,7 @@ import { expect } from "chai";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { FootballBetting, FootballBetting__factory, MockERC20, MockERC20__factory } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { U, FU, USDT_DECIMALS } from "../scripts/shared/usdt";
 
 /** @dev 测试使用的平台手续费率：200 基点 = 2% */
 const FEE_RATE = 200;
@@ -38,19 +39,10 @@ const FEE_RATE = 200;
 const B = (s: string) => s === "" ? ethers.ZeroHash : ethers.encodeBytes32String(s);
 
 /**
- * @dev USDT 金额工具函数
- *      真实 USDT 有 6 位小数：1 USDT = 10^6 = 1,000,000 最小单位
- *      此函数封装 ethers.parseUnits(n, 6)，将"人类可读 USDT"转为"合约最小单位"
- *
- *      用法示例：
- *        U("0.05")   →  50,000         (0.05 USDT)
- *        U("1")      →  1,000,000      (1 USDT)
- *        U("0.0028") →  2,800          (模拟 0.14 USDT 奖池的 2% 手续费)
- *
- *      为什么不用 parseEther？
- *      parseEther 默认 18 位小数（ETH 精度），直接用于 USDT 会导致 10^12 倍的误差。
+ * @dev USDT 金额工具函数 — 从 scripts/shared/usdt.ts 导入
+ *      Faucet USDT = 18 位小数（与 ETH/CFX 相同），1 USDT = 10^18 最小单位
+ *      切换币种时修改 scripts/shared/usdt.ts 的 USDT_DECIMALS 即可
  */
-const U = (n: string) => ethers.parseUnits(n, 6);
 
 describe("FootballBetting 合约（USDT 支付版）", function () {
 
@@ -203,7 +195,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
                     U("0.01"), 0,
                     true
                 )
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
 
         it("不能创建开始时间在过去或现在的比赛", async function () {
@@ -214,7 +206,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
                     U("0.01"), 0,
                     true
                 )
-            ).to.be.revertedWith("FootballBetting: start time must be in the future");
+            ).to.be.revertedWithCustomError(contract, "StartTimeNotFuture");
         });
 
         it("deadline 必须 <= startTime", async function () {
@@ -224,7 +216,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
                     U("0.01"), 0,
                     true
                 )
-            ).to.be.revertedWith("FootballBetting: deadline must be <= startTime");
+            ).to.be.revertedWithCustomError(contract, "DeadlineAfterStart");
         });
 
         it("不能创建队名为空的比赛", async function () {
@@ -234,7 +226,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
                     U("0.01"), 0,
                     true
                 )
-            ).to.be.revertedWith("FootballBetting: home team name required");
+            ).to.be.revertedWithCustomError(contract, "TeamNameEmpty");
         });
 
         it("管理员可以开放比赛投注", async function () {
@@ -246,13 +238,13 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("不能开放不存在的比赛", async function () {
             await expect(
                 contract.connect(owner).openMatch(999)
-            ).to.be.revertedWith("FootballBetting: match does not exist");
+            ).to.be.revertedWithCustomError(contract, "MatchNotExist");
         });
 
         it("不能重复开放同一场比赛", async function () {
             await expect(
                 contract.connect(owner).openMatch(1)
-            ).to.be.revertedWith("FootballBetting: match is not in Created status");
+            ).to.be.revertedWithCustomError(contract, "MatchNotCreated");
         });
 
         it("管理员可以关闭比赛投注", async function () {
@@ -335,7 +327,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("不能投注不存在的比赛", async function () {
             await expect(
                 contract.connect(user4).placeBet(999, 1, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: match does not exist");
+            ).to.be.revertedWithCustomError(contract, "MatchNotExist");
         });
 
         it("不能投注未开放的比赛", async function () {
@@ -348,33 +340,33 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
             );
             await expect(
                 contract.connect(user4).placeBet(3, 1, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: match is not open for betting");
+            ).to.be.revertedWithCustomError(contract, "MatchNotOpen");
         });
 
         it("不能投注无效的结果类型", async function () {
             await expect(
                 contract.connect(user4).placeBet(2, 0, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: must choose a valid result");
+            ).to.be.revertedWithCustomError(contract, "InvalidResult");
         });
 
         it("投注金额低于最低限额时拒绝", async function () {
             await contract.connect(owner).openMatch(3);
             await expect(
                 contract.connect(user4).placeBet(3, 1, U("0.001")) // 10 < minBet(100)
-            ).to.be.revertedWith("FootballBetting: bet below minimum");
+            ).to.be.revertedWithCustomError(contract, "BelowMinBet");
         });
 
         it("投注金额超过最高限额时拒绝", async function () {
             await expect(
                 contract.connect(user4).placeBet(2, 1, U("2")) // 2 USDT > maxBet(1)
-            ).to.be.revertedWith("FootballBetting: bet above maximum");
+            ).to.be.revertedWithCustomError(contract, "AboveMaxBet");
         });
 
         it("投注截止后不能投注", async function () {
             await time.increaseTo(m2Deadline + 1);
             await expect(
                 contract.connect(user4).placeBet(2, 1, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: betting deadline passed");
+            ).to.be.revertedWithCustomError(contract, "DeadlineNotPassed");
         });
     });
 
@@ -431,19 +423,19 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("不能重复领取已结算的奖励", async function () {
             await expect(
                 contract.connect(user1).claimReward(2)
-            ).to.be.revertedWith("FootballBetting: reward already claimed");
+            ).to.be.revertedWithCustomError(contract, "AlreadyClaimed");
         });
 
         it("不能对未结算的比赛领取奖励", async function () {
             await expect(
                 contract.connect(user1).claimReward(3)
-            ).to.be.revertedWith("FootballBetting: match not settled yet");
+            ).to.be.revertedWithCustomError(contract, "MatchNotSettled");
         });
 
         it("不能对已结算的比赛重复录入赛果", async function () {
             await expect(
                 contract.connect(owner).recordResult(2, 1, 0)
-            ).to.be.revertedWith("FootballBetting: match already settled");
+            ).to.be.revertedWithCustomError(contract, "MatchAlreadySettled");
         });
 
         it("不能录入无法判定的比分", async function () {
@@ -453,7 +445,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("非管理员不能录入赛果", async function () {
             await expect(
                 contract.connect(user1).recordResult(3, 1, 0)
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
 
         it("previewReward 函数返回正确的预期奖励", async function () {
@@ -491,13 +483,13 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("余额为 0 时不能提取", async function () {
             await expect(
                 contract.withdrawFee()
-            ).to.be.revertedWith("FootballBetting: no fees to withdraw");
+            ).to.be.revertedWithCustomError(contract, "NoFees");
         });
 
         it("非管理员不能提取手续费", async function () {
             await expect(
                 contract.connect(user1).withdrawFee()
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
     });
 
@@ -509,23 +501,23 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("管理员权限隔离：普通用户不能调用管理员函数", async function () {
             await expect(
                 contract.connect(user1).openMatch(1)
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
 
             await expect(
                 contract.connect(user1).closeMatch(1)
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
 
         it("重复结算拦截：不能对已结算比赛再次录入", async function () {
             await expect(
                 contract.connect(owner).recordResult(2, 0, 0)
-            ).to.be.revertedWith("FootballBetting: match already settled");
+            ).to.be.revertedWithCustomError(contract, "MatchAlreadySettled");
         });
 
         it("不能对未关闭的比赛录入赛果", async function () {
             await expect(
                 contract.connect(owner).recordResult(3, 1, 0)
-            ).to.be.revertedWith("FootballBetting: match must be Closed or past deadline");
+            ).to.be.revertedWithCustomError(contract, "MatchNotClosedOrPast");
         });
     });
 
@@ -633,14 +625,14 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
             const usdtAddr = await mockUsdt.getAddress();
             await expect(
                 factory.deploy(1001, usdtAddr)
-            ).to.be.revertedWith("FootballBetting: fee rate too high");
+            ).to.be.revertedWithCustomError(contract, "FeeRateTooHigh");
         });
 
         it("constructor 拒绝 USDT 地址为零地址", async function () {
             const factory = await ethers.getContractFactory("FootballBetting");
             await expect(
                 factory.deploy(200, ethers.ZeroAddress)
-            ).to.be.revertedWith("FootballBetting: invalid USDT address");
+            ).to.be.revertedWithCustomError(contract, "InvalidUsdtAddress");
         });
 
         it("手续费率为 0（免费）也可以正常工作", async function () {
@@ -693,13 +685,13 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("暂停后不能投注", async function () {
             await expect(
                 contract.connect(user1).placeBet(1, 1, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: contract is paused");
+            ).to.be.revertedWithCustomError(contract, "ContractPaused");
         });
 
         it("暂停后不能领取奖励", async function () {
             await expect(
                 contract.connect(user1).claimReward(2)
-            ).to.be.revertedWith("FootballBetting: contract is paused");
+            ).to.be.revertedWithCustomError(contract, "ContractPaused");
         });
 
         it("暂停后不能录入赛果", async function () {
@@ -715,7 +707,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
 
             await expect(
                 contract.connect(owner).recordResult(6, 1, 0)
-            ).to.be.revertedWith("FootballBetting: contract is paused");
+            ).to.be.revertedWithCustomError(contract, "ContractPaused");
 
             await contract.connect(owner).unpause();
         });
@@ -743,27 +735,27 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
         it("非管理员不能暂停", async function () {
             await expect(
                 contract.connect(user1).pause()
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
 
         it("非管理员不能恢复", async function () {
             await expect(
                 contract.connect(user1).unpause()
-            ).to.be.revertedWith("FootballBetting: caller is not the owner");
+            ).to.be.revertedWithCustomError(contract, "NotOwner");
         });
 
         it("不能重复暂停", async function () {
             await contract.connect(owner).pause();
             await expect(
                 contract.connect(owner).pause()
-            ).to.be.revertedWith("FootballBetting: already paused");
+            ).to.be.revertedWithCustomError(contract, "AlreadyPaused");
             await contract.connect(owner).unpause();
         });
 
         it("不能重复恢复", async function () {
             await expect(
                 contract.connect(owner).unpause()
-            ).to.be.revertedWith("FootballBetting: not paused");
+            ).to.be.revertedWithCustomError(contract, "NotPaused");
         });
 
         it("管理员恢复后用户可以投注", async function () {
@@ -780,7 +772,7 @@ describe("FootballBetting 合约（USDT 支付版）", function () {
             await contract.connect(owner).pause();
             await expect(
                 contract.connect(user4).placeBet(newMatchId, 1, U("0.01"))
-            ).to.be.revertedWith("FootballBetting: contract is paused");
+            ).to.be.revertedWithCustomError(contract, "ContractPaused");
 
             await contract.connect(owner).unpause();
             await contract.connect(user4).placeBet(newMatchId, 1, U("0.01"));

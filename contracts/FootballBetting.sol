@@ -174,7 +174,7 @@ contract FootballBetting {
     /// @dev 平台手续费率（基点，如 200 = 2%），immutable 读取免 SLOAD
     uint256 public immutable platformFeeRate;
 
-    /// @dev 平台累计手续费余额（USDT 最小单位，如 USDT 有 6 位小数则单位为 0.000001 USDT）
+    /// @dev 平台累计手续费余额（Faucet USDT = 18 位小数，1 USDT = 10^18 最小单位）
     uint256 public platformBalance;
 
     /// @dev USDT 代币合约引用（immutable——constructor 赋值后不可修改，读取免 SLOAD）
@@ -538,7 +538,7 @@ contract FootballBetting {
      *
      * @param matchId 赛事 ID（从 1 开始，由 createMatch 返回）
      * @param betOn   投注选项（HomeWin=1, Draw=2, AwayWin=3）
-     * @param amount  投注 USDT 金额（最小单位，USDT 有 6 位小数：1 USDT = 1,000,000）
+     * @param amount  投注 USDT 金额（最小单位，18 位小数：1 USDT = 10^18）
      */
     function placeBet(uint256 matchId, Result betOn, uint256 amount) external noReentrancy whenNotPaused {
         if (betOn == Result.Pending) revert InvalidResult();
@@ -858,12 +858,16 @@ contract FootballBetting {
     function _removeFromPool(Match storage m, Result r, uint128 amount) internal {
         unchecked {
             if (r == Result.HomeWin) {
+                assert(m.poolHome >= amount);
                 m.poolHome -= amount;
             } else if (r == Result.Draw) {
+                assert(m.poolDraw >= amount);
                 m.poolDraw -= amount;
             } else {
+                assert(m.poolAway >= amount);
                 m.poolAway -= amount;
             }
+            assert(m.totalPool >= amount);
             m.totalPool -= amount;
         }
     }

@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
+import { U } from "./shared/usdt";
 
 async function main() {
   const record = JSON.parse(fs.readFileSync(path.join(__dirname,"..","deployments","localhost.json"),"utf-8"));
@@ -40,12 +41,14 @@ async function main() {
     console.log("deadline:", new Date(Number(deadline)*1000).toLocaleString());
 
     const tx = await c.createMatch(
+      ethers.encodeBytes32String("测试赛"),
       ethers.encodeBytes32String("法国"),
       ethers.encodeBytes32String("巴西"),
       start,
       deadline,
-      ethers.parseUnits("0.01", 6),
-      0n
+      U("0.01"),
+      0n,
+      true
     );
     const r = await tx.wait();
     console.log("✓ createMatch 成功! block", r!.blockNumber);
