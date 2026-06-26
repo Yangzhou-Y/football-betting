@@ -1,3 +1,24 @@
+/**
+ * ============================================================================
+ * LayoutClient — 客户端布局根组件
+ * ============================================================================
+ *
+ * 【Context 层级结构（从外到内）】
+ *   LangProvider         → 中英文切换
+ *   ClientProviders      → RainbowKit + Wagmi + TanStack Query
+ *   TxToastProvider      → 全局交易状态 Toast
+ *   RefreshContext        → 手动触发 UI 刷新
+ *   LayoutInner          → Navbar + 背景 + 页面动画 + Footer
+ *
+ * 【为什么需要 'use client'？】
+ *   Next.js App Router 默认服务端渲染。useAccount()、useState() 等
+ *   需要客户端环境（window、localStorage 等），所以整个布局链从
+ *   LayoutClient 开始都标记为 'use client'。
+ *
+ * 【RefreshContext 的作用】
+ *   提供 refreshKey 计数器 + triggerRefresh 方法，跨组件触发 UI 更新
+ *   （如页面切换动画、表单重置等与 TanStack Query 无关的状态）。
+ */
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
@@ -28,12 +49,15 @@ export function LayoutClient({ children }: { children: ReactNode }) {
   );
 }
 
+/** 实际渲染布局的内部组件 — Navbar + 背景 + 主内容 + 页面切换动画 + Footer */
 function LayoutInner({ children, refreshKey }: { children: ReactNode; refreshKey: number }) {
   const t = useT();
   const { lang } = useLang();
   const { address, chain, isConnected } = useAccount();
+  // 检测当前连接的网络是否在支持列表中
   const unsupported = isConnected && chain && !supportedChainIds.includes(chain.id);
 
+  // 语言切换时同步更新 HTML lang 属性（影响浏览器翻译提示和字体渲染）
   useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
   }, [lang]);

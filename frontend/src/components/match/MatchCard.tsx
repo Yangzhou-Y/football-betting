@@ -9,6 +9,28 @@ import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
 import type { MatchStruct } from "@/lib/types";
 
+/**
+ * ============================================================================
+ * MatchCard — 赛事卡片组件，用于首页、赛事列表、我的竞猜等多处展示
+ * ============================================================================
+ *
+ * 【显示内容】
+ *   - 状态徽章（MatchStatusBadge）+ 可领取/已投注 动画徽章
+ *   - 比赛名称（自动中英翻译）+ 开赛时间
+ *   - 主队名 + VS + 客队名（含国旗）
+ *   - 已开奖赛事：显示比分
+ *   - 奖池总额 + 三选项比例条（主胜/平局/客胜）
+ *   - 底部状态提示（投注 / 已截止 / 等待开奖 / 查看详情）
+ *
+ * 【交互】
+ *   整个卡片是一个 <Link>，点击跳转到 /matches/{matchId} 详情页。
+ *   hover 时有边框变蓝 + 阴影效果。
+ *
+ * 【视觉设计】
+ *   - 可领取徽章：绿色 + emoji 💰 + animate-claim（pulse 动画）
+ *   - 已投注徽章：橙色 + emoji 🔥 + animate-fire
+ *   - 比例条：蓝(主胜)/灰(平局)/红(客胜)，宽度由奖池占比决定
+ */
 export function MatchCard({ match, matchId, hasBet, won, claimed }: { match: MatchStruct; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean }) {
   const t = useT();
   const { lang } = useLang();

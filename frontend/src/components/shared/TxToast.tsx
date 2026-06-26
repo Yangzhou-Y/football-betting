@@ -1,3 +1,30 @@
+/**
+ * ============================================================================
+ * TxToast — 交易状态 Toast 通知系统
+ * ============================================================================
+ *
+ * 【三种通知类型】
+ *   pending → 蓝色卡片 + ⏳ 图标，交易已提交等待签名/确认（不自动消失）
+ *   success → 绿色卡片 + ✓ 图标，操作成功（2.8s 后自动消失）
+ *   error   → 红色卡片 + ✕ 图标，操作失败（2.8s 后自动消失）
+ *
+ * 【生命周期管理】
+ *   ① 交易开始前      → show("交易已提交...", "pending")  返回 toastId
+ *   ② 交易 pending 中 → toast 保持显示（不自动消失）
+ *   ③ 交易确认成功    → show("投注成功", "success")       自动替换 + 2.8s 消失
+ *   ④ 交易失败        → show("投注失败", "error")         自动替换 + 2.8s 消失
+ *   ⑤ pending 变 success/error → 自动替换，无需手动 dismiss
+ *
+ * 【为什么用 Context 而非全局状态库？】
+ *   Toast 是一个全局 UI 元素，Context + Provider 模式可确保：
+ *   - 所有组件共享同一个 Toast 实例（而非各自渲染一个）
+ *   - Toast 固定在页面右下角（fixed positioning），不随路由切换消失
+ *   - 无需引入 Zustand/Redux 等状态管理库
+ *
+ * 【动画实现】
+ *   使用 requestAnimationFrame + CSS transition（opacity + translateY），
+ *   入场时从下方滑入 + 淡入，由浏览器合成器处理，不触发重排。
+ */
 "use client";
 
 import { useEffect, useState, useCallback, useRef, createContext, useContext, type ReactNode } from "react";

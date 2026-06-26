@@ -13,6 +13,25 @@ import MockERC20ABI from "@/lib/abi/MockERC20.json";
 import { formatUSDT } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 
+/**
+ * ============================================================================
+ * Navbar — 顶部导航栏（桌面端横排导航 + 移动端抽屉菜单）
+ * ============================================================================
+ *
+ * 【响应式策略】
+ *   桌面端（sm+）：横排导航链接 + USDT 余额 + 角色标签 + 语言切换 + ConnectButton
+ *   移动端（<sm）：汉堡菜单打开右侧抽屉（Portal 渲染到 body，避免 Safari
+ *    backdrop-filter 裁剪问题），抽屉内含完整导航 + 余额 + 角色
+ *
+ * 【权限感知】
+ *   非管理员用户看不到"管理"菜单项，管理员看到的是红色高亮的管理入口。
+ *   通过 useIsAdmin() 自动检测，无需手动配置。
+ *
+ * 【USDT 余额显示】
+ *   只读查询 usdt.balanceOf(user)，钱包连接后自动显示在导航栏右侧。
+ *   注意：此处连接的是 MockERC20 的 ABI，因为 USDT 合约也实现了相同的
+ *   balanceOf 接口（ERC-20 标准）。
+ */
 export function Navbar() {
   const { t, lang, setLang } = useLang();
   const pathname = usePathname();

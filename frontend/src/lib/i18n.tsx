@@ -1,3 +1,30 @@
+/**
+ * ============================================================================
+ * 国际化（i18n）模块 — 中英文切换 + React Context
+ * ============================================================================
+ *
+ * 【设计思路】
+ *   方案：客户端字典映射（无外部 i18n 库依赖）
+ *   优点：零依赖、热切换无需刷新、支持嵌套 Context 隔离
+ *   缺点：不支持复数规则、日期格式化等高级特性（通过 Intl API 独立处理）
+ *
+ * 【翻译流程】
+ *   ① LangProvider 包裹整个应用，提供 { lang, t, setLang }
+ *   ② 组件调用 const t = useT() 获取翻译函数
+ *   ③ t("common.loading") → 查 dict[currentLang]["common.loading"]
+ *   ④ Key 不存在时回退到原始 key 字符串（避免白屏）
+ *
+ * 【为什么不用 next-intl 或 react-i18next？】
+ *   - 学习项目，保持依赖最小化
+ *   - 翻译条目量不大（~100 条），手动管理字典可控
+ *   - 客户端切换无需服务端配合，简单直接
+ *
+ * 【添加新翻译的步骤】
+ *   ① 在两个 dict.zh 和 dict.en 对象中各添加一个 key-value
+ *   ② Key 命名规范：`功能.描述`，如 "admin.createMatch"
+ *   ③ 组件中使用：const t = useT(); return <span>{t("admin.createMatch")}</span>
+ *   ④ 不要忘记同时更新两个语言版本
+ */
 "use client";
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
@@ -5,7 +32,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 type Lang = "zh" | "en";
 
 // ============================================================================
-// 翻译字典
+// 翻译字典 — 中/英双语的完整 KV 映射
 // ============================================================================
 const dict: Record<Lang, Record<string, string>> = {
   zh: {
@@ -637,8 +664,16 @@ const dict: Record<Lang, Record<string, string>> = {
 };
 
 // ============================================================================
-// Context
+// 语言上下文（Context）— 为整个应用树提供翻译能力
 // ============================================================================
+//
+// 三层导出：
+//   LangProvider  → 在 LayoutClient 层包裹，提供 lang/setLang 状态
+//   useT()        → 返回翻译函数 t(key)，组件最常用的调用方式
+//   useLang()     → 返回 { lang, t, setLang }，需要切换语言的组件使用
+//
+// t 函数使用 useCallback + lang 依赖，确保语言切换时所有调用方自动重新渲染。
+// Key 不存在时回退到原始 key 字符串，避免翻译缺失导致白屏。
 const LangContext = createContext<{ lang: Lang; t: (key: string) => string; setLang: (l: Lang) => void }>({
   lang: "zh",
   t: (k) => k,
@@ -649,7 +684,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("zh");
 
   const t = useCallback((key: string) => {
-    return dict[lang][key] || key;
+    return dict[lang][key] || key;  // Key 缺失时降级显示原始 key
   }, [lang]);
 
   return (

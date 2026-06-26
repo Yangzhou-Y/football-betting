@@ -1,3 +1,29 @@
+/**
+ * ============================================================================
+ * 赛事列表页 — 筛选 + 分页（客户端分页，每页 12 场）
+ * ============================================================================
+ *
+ * 【筛选功能】
+ *   全部 / 已投注（当前用户）/ 投注中（Open）/ 已封盘（Closed）/ 已开奖（Settled）
+ *   切换筛选器时自动重置到第 1 页
+ *
+ * 【分页策略 — 客户端分页】
+ *   从 getAllMatches() 获取全部比赛，在前端通过 .slice() 实现分页。
+ *   选择此方案而非合约层面的 getMatchesPaginated 的原因：
+ *   ① 不改合约字节码（避免重新部署）
+ *   ② 比赛数量少（<100 场），全量数据一次 RPC 调用即可获取
+ *   ③ 切换页码无需额外 RPC，即时响应
+ *
+ *   若未来比赛数增长到数百场以上，应在合约中添加 getMatchesPaginated
+ *   返回 count + 分页参数，或在链下建立索引服务。
+ *
+ * 【排序规则】
+ *   ① 已投注的排在前面（个人相关度优先）
+ *   ② 同组内按开赛时间升序
+ *
+ * 【紧急暂停横幅】
+ *   从合约读取 paused 状态，如合约已暂停则在全页面顶部显示红色警告横幅
+ */
 "use client";
 
 import { useState } from "react";
@@ -12,6 +38,7 @@ import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
+/** 每页显示的赛事卡片数 */
 const PAGE_SIZE = 12;
 
 export default function MatchesPage() {

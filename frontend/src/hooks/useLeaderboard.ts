@@ -37,6 +37,34 @@ interface RawRewardEvent {
   rewardAmount: bigint;
 }
 
+/**
+ * ============================================================================
+ * 排行榜 Hook — 链上事件扫描 + 本地聚合统计
+ * ============================================================================
+ *
+ * 【工作原理】
+ *   排行榜不是合约内置功能，而是前端通过扫描历史事件（BetPlaced +
+ *   RewardClaimed）在本地构建的统计数据。
+ *
+ *   流程：
+ *   ① 确定扫描的区块范围（fromBlock=部署块, toBlock=当前最新块）
+ *   ② 将范围切分为 100k 块一组的分片（BLOCK_CHUNK）
+ *   ③ 逐片调用 getContractEvents 拉取 BetPlaced + RewardClaimed 事件
+ *   ④ 在 aggregateLeaderboard() 中按用户地址聚合 → 盈亏/胜率 → 排序
+ *   ⑤ 取前 TOP_N (100) 名返回
+ *
+ * 【为什么分片？】
+ *   多数 RPC 节点对 eth_getLogs 有单次查询的最大区块范围限制（约 100k-500k 块）。
+ *   分片 + 顺序执行可避免 RPC 超时和限流。
+ *
+ * 【缓存策略】
+ *   - staleTime: 60_000（1分钟），避免频繁页面切换时重复请求
+ *   - 查询键 `["leaderboard", ...]` 被 useWaitForTxAndRefresh 排除，
+ *     避免每次投注都重扫全量事件
+ *
+ * 【排列顺序】
+ *   profit（盈亏=总奖励-总投注）降序 → winRate 降序
+ */
 export function useLeaderboard() {
   const { contractAddress, deployBlock } = useDeploymentConfig() as { contractAddress: `0x${string}` | null; usdtAddress: `0x${string}` | null; platformFeeRate: number; isReady: boolean; deployBlock?: number; chainId: number };
   const { data: matches, isLoading: matchesLoading } = useAllMatches();

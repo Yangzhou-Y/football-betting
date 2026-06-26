@@ -1,3 +1,29 @@
+/**
+ * ============================================================================
+ * 排行榜页 — 链上事件聚合的全局投注排行榜
+ * ============================================================================
+ *
+ * 【排名算法】
+ *   ① 盈亏（profit = 总奖励 - 总投注）降序排列
+ *   ② 盈亏相同时，胜率降序
+ *   ③ 取前 100 名（TOP_N = 100）
+ *
+ * 【排名标识】
+ *   前三名显示奖牌：🏅(金) / 🥈(银) / 🥉(铜)
+ *   当前用户所在行高亮（蓝色背景 + "YOU" 标签）
+ *
+ * 【数据来源】
+ *   扫描链上 BetPlaced 和 RewardClaimed 事件，
+ *   在前端进行用户级聚合。具体见 useLeaderboard hook。
+ *
+ * 【响应式展示】
+ *   桌面端（sm+）：完整数据表格（排名/地址/投注场次/猜中/胜率/累计投注/盈亏）
+ *   移动端（<sm）：卡片列表（排名/地址/盈亏 + 胜率/场次）
+ *
+ * 【刷新机制】
+ *   排行榜数据不会随交易自动刷新（已排除在 invalidateQueries 之外），
+ *   因为每次投注都重扫全量事件成本太高。用户切换页面或手动刷新时重新获取。
+ */
 "use client";
 
 import { useAccount } from "wagmi";
@@ -6,12 +32,14 @@ import { useMounted } from "@/hooks/useMounted";
 import { formatUSDT } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
+/** 前三名奖牌图标（index 0=第1名金牌, 1=第2名银牌, 2=第3名铜牌） */
 const MEDAL_ICONS: Record<number, string> = {
   0: "1",
   1: "2",
   2: "3",
 };
 
+/** 盈亏显示组件 — 正数绿色 + 前缀，负数红色 - 前缀，零为灰色 */
 function ProfitDisplay({ profit }: { profit: bigint }) {
   if (profit > 0n) {
     return <span className="text-green-600 font-medium">+{formatUSDT(profit)}</span>;
