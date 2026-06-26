@@ -6,6 +6,30 @@
 
 **[football-betting-mu.vercel.app](https://football-betting-mu.vercel.app/)**
 
+## 项目亮点
+
+### 1. 全免费云端托管 + 自动部署
+
+前端托管于 **Vercel**，拥有固定域名 `football-betting-mu.vercel.app`。无需像传统 DApp 那样在本地运行 `npm run dev` 或维护隧道服务，用户打开浏览器即可使用。Vercel 与 GitHub 深度集成——每次 `main` 分支有新提交，Vercel 自动拉取、构建、上线，部署记录可在 Vercel Dashboard 中追溯。对于合约没有改动的前端更新（UI 优化、Bug 修复等），一次 `git push` 就能完成上线，全程免费。
+
+### 2. 移动端深度适配，打破 Chrome 依赖
+
+传统 DApp 生态深度绑定桌面端 Chrome + MetaMask 拓展，手机用户几乎无法参与。本项目做了全面的移动端适配：
+
+- **响应式 UI**：移动端统计卡片横排、紧凑时间显示、中英字体基线对齐、禁用双指缩放，完整复刻桌面端体验
+- **MetaMask App 内置浏览器**：移动端用户无需切换到桌面，在 MetaMask App 中打开 DApp 即可完成**查看赛事 → USDT 投注 → 领取奖励 → 管理赛事**的全流程操作，所有钱包签名均通过 MetaMask 内置浏览器完成
+- **钱包检测三级降级**：`_metamask` 内部 API → EIP-6963 `providers` → `isMetaMask` 排除伪装者（Rabby/Coinbase/OKEx/Brave/Trust），确保移动端和桌面端都能准确识别 MetaMask
+
+### 3. WalletConnect 方案探索 — 打造真正跨浏览器 DApp
+
+在移动端适配的基础上，本项目进一步探索了**彻底摆脱特定浏览器**的可能性——结合 MetaMask 最新的实验性功能 **WalletConnect**，实现任意浏览器（手机 Safari / Chrome / 桌面 Edge 等）扫码连接钱包：
+
+- 任意浏览器打开 DApp → 点击连接钱包 → 选择 WalletConnect → 弹出二维码
+- 用手机上的任意支持 WalletConnect 的钱包 App（MetaMask / Rabby / Trust 等）扫码
+- **浏览器端与合约交互，手机钱包端签名确认**，两者物理分离但流程贯通
+
+由于 `connectorsForWallets` 可同时注入多个钱包的 WalletConnect 连接器，用户可以**快速切换不同钱包**，无需安装任何浏览器拓展。但受限于 MetaMask WalletConnect 目前仍处于实验性阶段，连接稳定性欠佳（超时、断连、重复签名等问题频发），暂时无法作为正式功能上线。相关探索代码保留在 `fix/mobile-WalletConnect` 分支中，待 MetaMask 转正后作为优先迭代方向。
+
 ## 项目结构
 
 ```
