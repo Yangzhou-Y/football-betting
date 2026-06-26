@@ -313,6 +313,10 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
         </p>
       </div>
 
+      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-xs text-amber-700 leading-relaxed">{t("bet.noWinnerHint")}</p>
+      </div>
+
       {friendlyApprove && <ErrorBox message={friendlyApprove} />}
       {friendlyBet && <ErrorBox message={friendlyBet} />}
       {friendlyCancel && <ErrorBox message={friendlyCancel} />}
