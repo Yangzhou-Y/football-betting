@@ -26,14 +26,6 @@ export const RESULT_KEYS: Record<Result, string> = {
   [Result.AwayWin]: "result.awayWin",
 };
 
-/** @deprecated 使用 RESULT_KEYS + t() 代替 */
-export const RESULT_LABELS: Record<Result, string> = {
-  [Result.Pending]: "待定",
-  [Result.HomeWin]: "主队胜",
-  [Result.Draw]: "平局",
-  [Result.AwayWin]: "客队胜",
-};
-
 /** 比赛状态 → i18n key 映射 */
 export const STATUS_KEYS: Record<MatchStatus, string> = {
   [MatchStatus.Created]: "match.status.created",

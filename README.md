@@ -14,11 +14,16 @@ football-betting/
 │   ├── FootballBetting.sol      # 核心合约（USDT 支付 / 多管理员 / Gas 优化）
 │   └── MockERC20.sol            # 本地测试用 ERC-20（18 位小数）
 ├── scripts/
-│   ├── deploy.ts                # 部署脚本（自动部署 MockERC20 或读取 faucet USDT）
-│   ├── interact.ts              # 批量创建 10 场比赛
-│   ├── admin.ts                 # 管理员管理（添加/移除/查看）
-│   ├── check.ts                 # 链上状态检查
-│   └── test-bet.ts              # 测试投注脚本
+│   ├── shared/
+│   │   └── usdt.ts                # 小数位数统一配置（U()/FU()/USDT_DECIMALS）
+│   ├── deploy.ts                  # 部署脚本（自动部署 MockERC20 或读取 faucet USDT）
+│   ├── interact.ts                # 批量创建 10 场比赛
+│   ├── admin.ts                   # 管理员管理（添加/移除/查看）
+│   ├── check.ts                   # 链上状态检查
+│   ├── diag.ts                    # 诊断脚本（时间校准 / 状态排查）
+│   ├── fix-time.ts                # Hardhat EVM 时间修复
+│   ├── test-bet.ts                # 测试投注脚本
+│   └── test-create.ts             # 测试创建赛事脚本
 ├── test/
 │   └── FootballBetting.test.ts  # 完整测试套件
 ├── frontend/                    # Next.js 前端
@@ -131,13 +136,12 @@ ADMIN_ACTION=remove ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --netwo
 
 ## Gas 优化（第四轮）
 
-本轮优化引入 **36 个自定义错误** 替代 require 字符串、`_addToPool`/`_removeFromPool` 使用 `unchecked` 池子运算、修复 `placeBet` 切换选项时的双写 SSTORE。
+本轮优化引入 **32 个自定义错误** 替代 require 字符串、`_addToPool`/`_removeFromPool` 使用 `unchecked` 池子运算。
 
 | 优化 | 效果 |
 |---|---|
 | 自定义错误 | 部署 Gas -5~10%，每次 revert -200~300 gas |
 | unchecked 池子运算 | 每次投注 -100~400 gas |
-| 双写修复 | 切换投注选项时 -5000 gas |
 
 历史优化：结构体紧凑排列（-40~50%）、uint128 替代 uint256（-30%）、bytes32 替代 string（-15%）、删除零赋值（-8%）。
 
@@ -181,7 +185,7 @@ ADMIN_ACTION=remove ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --netwo
 
 ## 安全
 
-- `onlyOwner` 修饰器 — 管理员 + 多管理员权限隔离
+- `onlyOwner` 修饰器 — 同时放行 owner 和 admins，实现多管理员权限体系；真正 owner 专属操作（addAdmin/removeAdmin）做内联检查
 - `noReentrancy` 修饰器 — 重入保护
 - `whenNotPaused` 修饰器 — 紧急暂停
 - Checks-Effects-Interactions — 状态更新先于外部调用
