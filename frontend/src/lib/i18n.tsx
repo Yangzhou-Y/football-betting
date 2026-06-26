@@ -94,7 +94,8 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.cancelled": "投注已取消",
     "bet.cancelledDesc": "USDT 已退回你的钱包",
     "bet.existingBet": "你已投注",
-    "bet.existingBetHint": "再次投注相同选项将累加金额到已有投注 · 切换选项将自动转移旧金额到新选项（若新金额小于旧金额，差额退回钱包）",
+    "bet.existingBetHint": "选择相同选项：本次金额会累加到已有投注 · 选择不同选项：以本次输入的金额作为新投注额，与原投注的差额自动多退少补",
+    "bet.noWinnerHint": "风险提示：若最终结果无人猜中，整个奖池将全部归平台所有，不会退回。",
 
     // 领奖
     "claim.reward": "领取奖励",
@@ -256,7 +257,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "confirm.confirmCancel": "确认取消",
     "confirm.betMsg": "选项",
     "confirm.amount": "金额",
-    "confirm.switchHint": "⚠ 切换选项后旧投注将自动转入新选项",
+    "confirm.switchHint": "⚠ 切换选项后，本场投注金额将以本次输入为准（原投注从旧选项移除，差额多退少补）",
     "confirm.addHint": "在已有投注上累加金额",
     "confirm.cancelMsg": "确定要取消本场比赛的投注吗？",
     "confirm.cancelRefund": "投注金额将退回你的钱包。",
@@ -406,7 +407,8 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.cancelled": "Bet Cancelled",
     "bet.cancelledDesc": "USDT refunded to your wallet",
     "bet.existingBet": "You bet on",
-    "bet.existingBetHint": "Betting the same option adds to your existing bet · Switching option transfers your old bet to the new one (excess refunded)",
+    "bet.existingBetHint": "Same option: this amount is added to your existing bet · Different option: the amount you enter now becomes your new bet, and the difference vs your old bet is automatically charged or refunded",
+    "bet.noWinnerHint": "Risk notice: if no one picks the final result, the entire pool goes to the platform and is not refunded.",
 
     // Claim
     "claim.reward": "Claim Reward",
@@ -568,7 +570,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "confirm.confirmCancel": "Confirm Cancel",
     "confirm.betMsg": "Option",
     "confirm.amount": "Amount",
-    "confirm.switchHint": "⚠ Switching will transfer your old bet to the new option",
+    "confirm.switchHint": "⚠ After switching, your bet for this match equals the amount you enter now (old bet removed from the previous option; the difference is charged or refunded)",
     "confirm.addHint": "Adding to your existing bet",
     "confirm.cancelMsg": "Are you sure you want to cancel this bet?",
     "confirm.cancelRefund": "Your bet amount will be refunded to your wallet.",
