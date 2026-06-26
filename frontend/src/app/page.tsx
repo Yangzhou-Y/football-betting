@@ -75,7 +75,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8 relative" key={address}>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <StatCard label={t("stats.totalMatches")} value={String(validMatches.length)} />
         <StatCard label={t("stats.totalPool")} value={`${formatUSDT(totalPool)} USDT`} color="text-blue-600" />
         <StatCard label={t("stats.openMatches")} value={`${openMatches.length}`} color="text-green-600" />
@@ -122,9 +122,9 @@ export default function HomePage() {
 
 function StatCard({ label, value, color = "text-slate-800" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
+    <div className="bg-white rounded-xl p-3 sm:p-5 shadow-sm border border-slate-200">
+      <p className="text-xs sm:text-sm text-slate-500">{label}</p>
+      <p className={`text-base sm:text-2xl font-bold mt-0.5 sm:mt-1 tabular-nums ${color}`}>{value}</p>
     </div>
   );
 }

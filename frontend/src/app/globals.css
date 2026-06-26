@@ -15,12 +15,17 @@
 body {
   background: linear-gradient(180deg, #f0f7f0 0%, #f8fafc 50%, #f4f8f0 100%) fixed;
   color: var(--foreground);
-  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
 }
 
 /* RainbowKit 按钮适配 */
 [data-rk] button {
   font-family: inherit;
+}
+
+/* 修正中英混排数字基线偏移 — 拉高数字对齐中文基线 */
+.tabular-nums {
+  vertical-align: -0.06em;
 }
 
 /* 数字输入框去掉箭头 */

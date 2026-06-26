@@ -75,3 +75,11 @@ export function formatTime(ts: bigint | number, lang: "zh" | "en" = "zh"): strin
   const locale = lang === "zh" ? "zh-CN" : "en-US";
   return new Date(Number(ts) * 1000).toLocaleString(locale);
 }
+
+/** Short date+time without seconds for compact display */
+export function formatTimeShort(ts: bigint | number, lang: "zh" | "en" = "zh"): string {
+  const locale = lang === "zh" ? "zh-CN" : "en-US";
+  const d = new Date(Number(ts) * 1000);
+  return d.toLocaleDateString(locale, { month: "numeric", day: "numeric" }) + " " +
+    d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
