@@ -25,8 +25,8 @@ const DEPLOYMENTS: Record<number, DeploymentRecord> = {
  */
 export function useDeploymentConfig() {
   const { chain } = useAccount();
-  // 未连接钱包时默认使用 Conflux 测试网，游客也能浏览
-  const chainId = chain?.id ?? 71;
+  // 未连接钱包时回退到受支持链中的第一个（本地开发→31337, 测试网→71）
+  const chainId = chain?.id ?? (DEPLOYMENTS[31337] ? 31337 : 71);
   const record = DEPLOYMENTS[chainId];
 
   return {

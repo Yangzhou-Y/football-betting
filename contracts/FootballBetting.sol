@@ -153,7 +153,7 @@ contract FootballBetting {
      *      旧布局约 5 槽 → 新布局 2 槽，placeBet 节省约 3 次 SSTORE
      */
     struct Bet {
-        uint128 amount;          // 投注金额（USDT 最小单位），uint128 上限 ≈ 3.4e20
+        uint128 amount;          // 投注金额（USDT 最小单位），uint128 上限 ≈ 3.4e38
         uint128 reward;          // 应得奖金，打包在同一个槽
         uint48 timestamp;        // 投注时间戳，uint48 可用 890 万年
         Result betOn;            // 投注选项
@@ -215,6 +215,7 @@ contract FootballBetting {
         uint256 indexed matchId, address indexed user, uint256 rewardAmount
     );
     event FeeWithdrawn(address indexed owner, uint256 amount);
+    event FeeRefundShortfall(uint256 indexed matchId, uint256 oldFee, uint256 available);
     event MatchReopened(uint256 indexed matchId);
     event MatchDeleted(uint256 indexed matchId);
     event AdminAdded(address indexed admin);
@@ -230,6 +231,7 @@ contract FootballBetting {
     error ContractPaused();
     error AlreadyPaused();
     error NotPaused();
+    error DeadlineNotReached();
     error FeeRateTooHigh();
     error InvalidUsdtAddress();
     error StartTimeNotFuture();
@@ -266,8 +268,13 @@ contract FootballBetting {
     // 五、修饰器
     // ========================================================================
 
-    modifier onlyOwner() {
+    modifier onlyAdmin() {
         if (msg.sender != owner && !admins[msg.sender]) revert NotOwner();
+        _;
+    }
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
         _;
     }
 
@@ -329,7 +336,7 @@ contract FootballBetting {
         bool allowDraw
     )
         external
-        onlyOwner
+        onlyAdmin
         returns (uint256)
     {
         if (startTime <= block.timestamp) revert StartTimeNotFuture();
@@ -361,7 +368,7 @@ contract FootballBetting {
     }
 
     /// @notice 开放比赛投注（Created → Open）
-    function openMatch(uint256 matchId) external onlyOwner {
+    function openMatch(uint256 matchId) external onlyAdmin {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Created) revert MatchNotCreated();
@@ -370,7 +377,7 @@ contract FootballBetting {
         emit MatchOpened(matchId);
     }
 
-    function deleteMatch(uint256 matchId) external onlyOwner {
+    function deleteMatch(uint256 matchId) external onlyAdmin {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Created) revert MatchNotCreated();
@@ -381,7 +388,7 @@ contract FootballBetting {
         emit MatchDeleted(matchId);
     }
 
-    function closeMatch(uint256 matchId) external onlyOwner {
+    function closeMatch(uint256 matchId) external onlyAdmin {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Open) revert MatchNotOpen();
@@ -394,7 +401,7 @@ contract FootballBetting {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (m.status != MatchStatus.Open) revert MatchNotOpen();
-        if (block.timestamp < m.deadline) revert DeadlineNotPassed();
+        if (block.timestamp < m.deadline) revert DeadlineNotReached();
 
         m.status = MatchStatus.Closed;
         emit MatchClosed(matchId);
@@ -406,7 +413,7 @@ contract FootballBetting {
      *         仅当手续费未被提取时才能完整退还；若已部分提取则退还剩余部分。
      *         若有用户已领奖则禁止回退，防止合约资不抵债。
      */
-    function reopenMatch(uint256 matchId) external onlyOwner {
+    function reopenMatch(uint256 matchId) external onlyAdmin {
         Match storage m = matches[matchId];
         if (m.startTime == 0) revert MatchNotExist();
         if (!m.settled) revert MatchNotSettled();
@@ -415,11 +422,12 @@ contract FootballBetting {
         // 计算之前结算时扣除的手续费
         uint256 oldFee = _calculateFee(m, m.result);
 
-        // 退还手续费（若平台余额不足，仅退还剩余部分）
+        // 退还手续费（若平台余额不足，仅退还剩余部分并发出事件）
         if (oldFee > 0) {
             if (platformBalance >= oldFee) {
                 platformBalance -= oldFee;
             } else {
+                emit FeeRefundShortfall(matchId, oldFee, platformBalance);
                 platformBalance = 0;
             }
         }
@@ -435,27 +443,25 @@ contract FootballBetting {
     }
 
     /// @notice 紧急暂停合约，禁用所有用户操作（投注/领奖/结算）
-    function pause() external onlyOwner {
+    function pause() external onlyAdmin {
         if (paused) revert AlreadyPaused();
         paused = true;
         emit Paused(msg.sender);
     }
 
-    function unpause() external onlyOwner {
+    function unpause() external onlyAdmin {
         if (!paused) revert NotPaused();
         paused = false;
         emit Unpaused(msg.sender);
     }
 
-    function addAdmin(address admin) external {
-        if (msg.sender != owner) revert NotOwner();
+    function addAdmin(address admin) external onlyOwner {
         if (admin == address(0)) revert InvalidAdmin();
         admins[admin] = true;
         emit AdminAdded(admin);
     }
 
-    function removeAdmin(address admin) external {
-        if (msg.sender != owner) revert NotOwner();
+    function removeAdmin(address admin) external onlyOwner {
         if (!admins[admin]) revert NotAdmin();
         admins[admin] = false;
         emit AdminRemoved(admin);
@@ -472,7 +478,7 @@ contract FootballBetting {
      */
     function recordResult(uint256 matchId, uint8 homeScore, uint8 awayScore)
         external
-        onlyOwner
+        onlyAdmin
         whenNotPaused
     {
         Match storage m = matches[matchId];
@@ -531,7 +537,7 @@ contract FootballBetting {
      *         【placeBet Gas 优化】
      *         ① Bet 结构体仅 2 槽 — amount/reward 同槽(1 SSTORE)，timestamp/betOn/claimed 同槽(1 SSTORE)
      *         ② 奖池更新最多 2 槽 — poolHome/poolDraw 同槽，poolAway/totalPool 同槽
-     *         ③ unchecked 包裹奖池加法 — uint128 上限 ≈ 3.4e20，远超 USDT 总流通量，安全
+     *         ③ unchecked 包裹奖池加法 — uint128 上限 ≈ 3.4e38，远超 USDT 总流通量，安全
      *         ④ uint128(amount) SafeCast — 0.8.x 保护，投注额不可能超 2^128
      *         ⑤ reward 字段不写 — 默认 0，等结算时再填，省 1 次 SSTORE
      *         ⑥ transferFrom 放在状态更新之后 → Checks-Effects-Interactions 模式
@@ -565,7 +571,7 @@ contract FootballBetting {
                 _removeFromPool(m, oldBetOn, oldAmount);
                 _addToPool(m, betOn, betAmount);
                 b.betOn = betOn;
-                // Write amount-with-reward-zero in one slot write to avoid double SSTORE
+                // Clear old reward before writing new amount (same slot, compiler may combine)
                 b.reward = 0;
                 b.amount = betAmount;
 
@@ -669,7 +675,7 @@ contract FootballBetting {
     /// @notice 提取平台手续费（仅管理员，USDT 转账）
     /// @dev    平台手续费来自：① 正常结算时 2% 抽成  ② 无人猜中时全部奖池归入
     ///         Effects before Interactions：platformBalance 先归零，再转 USDT
-    function withdrawFee() external onlyOwner noReentrancy {
+    function withdrawFee() external onlyAdmin noReentrancy {
         uint256 amount = platformBalance;
         if (amount == 0) revert NoFees();
         platformBalance = 0;
@@ -736,6 +742,25 @@ contract FootballBetting {
         return all;
     }
 
+    /// @notice 分页获取比赛列表（每页 pageSize 条，page 从 0 开始）
+    function getMatchesPaginated(uint256 page, uint256 pageSize)
+        external
+        view
+        returns (Match[] memory result, uint256 totalMatches)
+    {
+        totalMatches = matchCounter;
+        if (pageSize == 0) return (new Match[](0), totalMatches);
+        uint256 start = page * pageSize + 1;
+        if (start > totalMatches) return (new Match[](0), totalMatches);
+        uint256 end = start + pageSize;
+        if (end > totalMatches + 1) end = totalMatches + 1;
+        uint256 size = end - start;
+        result = new Match[](size);
+        for (uint256 i = 0; i < size; i++) {
+            result[i] = matches[start + i];
+        }
+    }
+
     /// @notice 获取用户全部投注记录（返回 5 个并行数组）
     function getUserAllBets(address user)
         external
@@ -781,7 +806,7 @@ contract FootballBetting {
 
     /**
      * @dev 根据比赛结果枚举获取对应奖池金额
-     * @return uint128 — 返回 pool 字段原始类型，uint128 上限 ≈ 3.4e20
+     * @return uint128 — 返回 pool 字段原始类型，uint128 上限 ≈ 3.4e38
      *         调用方在需要乘法/除法时自行展宽为 uint256 防溢出
      */
     function _getPoolByResult(Match storage m, Result r)

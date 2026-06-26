@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import { useAllMatches } from "@/hooks/useMatches";
+import { useMatchesPaginated } from "@/hooks/useMatches";
 import { useUserAllBets } from "@/hooks/useUserBets";
 import { useMounted } from "@/hooks/useMounted";
 import { MatchCard } from "@/components/match/MatchCard";
@@ -11,6 +11,8 @@ import { useDeploymentConfig } from "@/lib/config";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
+
+const PAGE_SIZE = 12;
 
 export default function MatchesPage() {
   const t = useT();
@@ -31,9 +33,11 @@ export default function MatchesPage() {
     chainId,
     query: { enabled: !!contractAddress },
   });
-  const { data: matches, isLoading, isError, error } = useAllMatches();
-  const { data: betsRaw } = useUserAllBets();
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(0);
+
+  const { data: paginated, isLoading, isError, error } = useMatchesPaginated(page, PAGE_SIZE);
+  const { data: betsRaw } = useUserAllBets();
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
@@ -60,10 +64,13 @@ export default function MatchesPage() {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
 
-  const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
+  const raw = paginated as [MatchStruct[], bigint] | undefined;
+  const matchList: MatchStruct[] = raw?.[0] ?? [];
+  const totalMatches = raw?.[1] ? Number(raw[1]) : 0;
+  const totalPages = Math.max(1, Math.ceil(totalMatches / PAGE_SIZE));
 
   const validMatches = matchList
-    .map((m, i) => ({ match: m, id: i + 1 }))
+    .map((m, i) => ({ match: m, id: page * PAGE_SIZE + i + 1 }))
     .filter(({ match }) => match.startTime > 0n);
 
   const betIds = new Set<bigint>();
@@ -132,6 +139,28 @@ export default function MatchesPage() {
               <MatchCard key={id} match={m} matchId={id} hasBet={hasBet} won={won} claimed={claimed} />
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 py-4">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ← {t("nav.prev") || "上一页"}
+          </button>
+          <span className="text-sm text-slate-500">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            {t("nav.next") || "下一页"} →
+          </button>
         </div>
       )}
     </div>

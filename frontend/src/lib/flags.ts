@@ -18,8 +18,13 @@ const CODE_MAP: Record<string, string> = {
   "多特蒙德": "de", "巴黎": "fr",
 };
 
-/** 根据队名返回国旗 <img> URL（24px），未匹配返回空 */
+/** 根据队名返回国旗 URL（24px），未匹配返回空；CDN 加载失败时用 onerror 回退为透明占位 */
 export function getFlagImg(name: string): string {
   const code = CODE_MAP[name.trim()];
   return code ? `https://flagcdn.com/w20/${code}.png` : "";
+}
+
+/** 国旗 <img> 的 onError 回调函数 — CDN 加载失败时隐藏破损图标 */
+export function flagOnError(e: React.SyntheticEvent<HTMLImageElement>) {
+  (e.target as HTMLImageElement).style.visibility = "hidden";
 }
