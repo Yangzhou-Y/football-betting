@@ -28,7 +28,7 @@
  */
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useMatch } from "@/hooks/useMatches";
 import { useUserBet, usePreviewReward } from "@/hooks/useUserBets";
@@ -41,7 +41,7 @@ import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { AmountDisplay } from "@/components/shared/AmountDisplay";
-import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
+import { MatchStatus, RESULT_KEYS, Result, USDT_DECIMALS } from "@/lib/constants";
 import type { MatchStruct, UserBetData } from "@/lib/types";
 import { formatUSDT, formatTime, decodeTeamName, calcOdds } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
@@ -49,6 +49,7 @@ import { parseContractError } from "@/lib/errors";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useTxToast } from "@/components/shared/TxToast";
 import { useT, useLang } from "@/lib/i18n";
+import { parseUnits } from "viem";
 
 export default function MatchDetailPage() {
   const t = useT();
@@ -339,15 +340,23 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
           <span className="text-sm text-slate-500">USDT</span>
         </div>
         <div className="flex gap-2 mt-2">
-          {["1", "10", "100"].map((amt) => (
+          {useMemo(() => {
+            const rawAmounts = [1, 10, 100];
+            return rawAmounts.map((n) => {
+              const wei = parseUnits(String(n), USDT_DECIMALS);
+              const inRange = wei >= minBet && (maxBet <= 0n || wei <= maxBet);
+              return { label: String(n), wei, inRange };
+            });
+          }, [minBet, maxBet]).map(({ label, inRange }) => (
             <button
-              key={amt}
+              key={label}
               type="button"
-              onClick={() => setBetAmount(amt)}
-              disabled={loading}
-              className="flex-1 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition"
+              onClick={() => setBetAmount(label)}
+              disabled={loading || !inRange}
+              title={!inRange ? (minBet > parseUnits(label, USDT_DECIMALS) ? t("bet.belowMin") : t("bet.aboveMax")) : undefined}
+              className="flex-1 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 disabled:opacity-30 transition"
             >
-              {amt}
+              {label}
             </button>
           ))}
         </div>

@@ -33,6 +33,7 @@ import { useUserAllBets } from "@/hooks/useUserBets";
 import { useParticipantCounts } from "@/hooks/useParticipantCounts";
 import { useMounted } from "@/hooks/useMounted";
 import { MatchCard } from "@/components/match/MatchCard";
+import { MatchCardGridSkeleton } from "@/components/shared/Skeleton";
 import { MatchStatus } from "@/lib/constants";
 import { useDeploymentConfig } from "@/lib/config";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
@@ -92,7 +93,17 @@ export default function MatchesPage() {
   }
 
   if (isLoading) {
-    return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse bg-slate-200 rounded h-7 w-24" />
+        <div className="flex gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="animate-pulse bg-slate-200 rounded-full h-8 w-16" />
+          ))}
+        </div>
+        <MatchCardGridSkeleton count={6} />
+      </div>
+    );
   }
 
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];

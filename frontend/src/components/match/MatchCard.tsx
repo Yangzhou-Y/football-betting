@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
@@ -48,6 +49,23 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
   const showBetBadge = hasBet && !settled;
   const now = BigInt(Math.floor(Date.now() / 1000));
   const deadlinePassed = status === MatchStatus.Open && match.deadline > 0n && now >= match.deadline;
+
+  // Countdown to deadline (updates every second)
+  const [countdown, setCountdown] = useState("");
+  useEffect(() => {
+    if (status !== MatchStatus.Open || match.deadline <= 0n) return;
+    const tick = () => {
+      const remaining = Number(match.deadline) - Math.floor(Date.now() / 1000);
+      if (remaining <= 0) { setCountdown(""); return; }
+      const h = Math.floor(remaining / 3600);
+      const m = Math.floor((remaining % 3600) / 60);
+      const s = remaining % 60;
+      setCountdown(h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [status, match.deadline]);
 
   const total = totalPool > 0n ? totalPool : 1n;
   const homePct = Number((poolHome * 100n) / total);
@@ -113,7 +131,10 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
       )}
 
       <div className="mt-3 text-center">
-        {status === MatchStatus.Open && !deadlinePassed && (
+        {status === MatchStatus.Open && !deadlinePassed && countdown && (
+          <span className="text-sm text-amber-600 font-medium">⏳ {countdown}</span>
+        )}
+        {status === MatchStatus.Open && !deadlinePassed && !countdown && (
           <span className="text-sm text-blue-600 font-medium">🎯 {t("bet.bet")}</span>
         )}
         {status === MatchStatus.Open && deadlinePassed && (

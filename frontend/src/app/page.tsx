@@ -25,6 +25,7 @@ import { useUserAllBets } from "@/hooks/useUserBets";
 import { useParticipantCounts } from "@/hooks/useParticipantCounts";
 import { useDeploymentConfig } from "@/lib/config";
 import { MatchCard } from "@/components/match/MatchCard";
+import { MatchCardGridSkeleton } from "@/components/shared/Skeleton";
 import { MatchStatus } from "@/lib/constants";
 import { formatUSDT } from "@/lib/utils";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
@@ -57,7 +58,26 @@ export default function HomePage() {
   }
 
   if (isLoading) {
-    return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 sm:p-5 shadow-sm border border-slate-200">
+              <div className="animate-pulse bg-slate-200 rounded h-3 w-16 mb-2" />
+              <div className="animate-pulse bg-slate-200 rounded h-7 w-12" />
+            </div>
+          ))}
+        </div>
+        <section>
+          <div className="animate-pulse bg-slate-200 rounded h-6 w-28 mb-3" />
+          <MatchCardGridSkeleton count={3} />
+        </section>
+        <section>
+          <div className="animate-pulse bg-slate-200 rounded h-6 w-28 mb-3" />
+          <MatchCardGridSkeleton count={3} />
+        </section>
+      </div>
+    );
   }
 
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];

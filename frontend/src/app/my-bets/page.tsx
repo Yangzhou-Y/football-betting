@@ -33,9 +33,11 @@ import { useAccount } from "wagmi";
 import { useUserAllBets } from "@/hooks/useUserBets";
 import { useAllMatches } from "@/hooks/useMatches";
 import { useMounted } from "@/hooks/useMounted";
+import { useClaimReward } from "@/hooks/useClaimReward";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
+import { TableSkeleton, CardListSkeleton } from "@/components/shared/Skeleton";
 import { Result } from "@/lib/constants";
 import { RESULT_KEYS } from "@/lib/constants";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
@@ -49,8 +51,8 @@ export default function MyBetsPage() {
   const { lang } = useLang();
   const mounted = useMounted();
   const { address, isConnected } = useAccount();
-  const { data: betsRaw } = useUserAllBets();
-  const { data: matches } = useAllMatches();
+  const { data: betsRaw, isLoading: betsLoading } = useUserAllBets();
+  const { data: matches, isLoading: matchesLoading } = useAllMatches();
   const [page, setPage] = useState(0);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
@@ -68,6 +70,27 @@ export default function MyBetsPage() {
 
   const bets = betsRaw as UserAllBetsTuple | undefined;
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
+  const loading = betsLoading || matchesLoading;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse bg-slate-200 rounded h-7 w-28" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 shadow-sm border border-slate-200 text-center">
+              <div className="animate-pulse bg-slate-200 rounded h-3 w-12 mx-auto mb-1" />
+              <div className="animate-pulse bg-slate-200 rounded h-6 w-10 mx-auto" />
+            </div>
+          ))}
+        </div>
+        <TableSkeleton rows={5} cols={5} />
+        <div className="sm:hidden">
+          <CardListSkeleton count={4} />
+        </div>
+      </div>
+    );
+  }
 
   if (!bets || bets[0].length === 0) {
     return (
@@ -118,6 +141,33 @@ export default function MyBetsPage() {
           color={totalWon >= totalWagered ? "text-green-600" : "text-red-500"}
         />
       </div>
+
+      {/* Claim All banner — shows total claimable rewards */}
+      {(() => {
+        const claimable: { idx: number; matchId: bigint; reward: bigint }[] = [];
+        for (let i = 0; i < matchIds.length; i++) {
+          if (!claimed[i] && rewards[i] > 0n) {
+            claimable.push({ idx: i, matchId: matchIds[i], reward: rewards[i] });
+          }
+        }
+        if (claimable.length === 0) return null;
+        const totalClaimable = claimable.reduce((s, c) => s + c.reward, 0n);
+        return (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="text-green-800 font-semibold">{t("myBets.claimableTotal")}: <span className="font-bold">{formatUSDT(totalClaimable)} USDT</span></p>
+                <p className="text-xs text-green-600 mt-0.5">{t("myBets.claimableHint").replace("{count}", String(claimable.length))}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {claimable.map((c) => (
+                <ClaimInline key={Number(c.matchId)} matchId={Number(c.matchId)} reward={c.reward} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Desktop table */}
       <div key={`d-${safePage}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
@@ -170,11 +220,11 @@ export default function MyBetsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {claimed[i] ? "✅"
-                        : match?.settled
-                          ? betOns[i] === match.result
-                            ? <span className="text-green-500 text-lg">{"💰"}</span>
-                            : "✅"
-                          : "⏳"}
+                        : match?.settled && betOns[i] === match.result
+                          ? <ClaimInline matchId={Number(mid)} reward={rewards[i]} />
+                          : match?.settled
+                            ? "✅"
+                            : "⏳"}
                     </td>
                   </tr>
                 );
@@ -209,11 +259,11 @@ export default function MyBetsPage() {
                 </div>
                 <div className="text-xs">
                   {claimed[i] ? "✅"
-                    : match?.settled
-                      ? betOns[i] === match.result
-                        ? <span className="text-green-500">{"💰"}</span>
-                        : "✅"
-                      : "⏳"}
+                    : match?.settled && betOns[i] === match.result
+                      ? <ClaimInline matchId={Number(mid)} reward={rewards[i]} />
+                      : match?.settled
+                        ? "✅"
+                        : "⏳"}
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -267,5 +317,25 @@ function StatCard({ label, value, color = "text-slate-800" }: { label: string; v
       <p className="text-xs text-slate-500">{label}</p>
       <p className={`text-lg font-bold mt-0.5 ${color}`}>{value}</p>
     </div>
+  );
+}
+
+/** Inline claim button for a single match — wraps useClaimReward hook */
+function ClaimInline({ matchId, reward }: { matchId: number; reward: bigint }) {
+  const t = useT();
+  const { handleClaim, isClaiming, isConfirming, isClaimed } = useClaimReward(matchId);
+
+  if (isClaimed) {
+    return <span className="text-green-600 text-xs">✅ {t("claim.alreadyClaimed")}</span>;
+  }
+
+  return (
+    <button
+      onClick={handleClaim}
+      disabled={isClaiming || isConfirming}
+      className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
+    >
+      {isClaiming ? t("claim.claiming") : isConfirming ? t("bet.confirming") : `${t("claim.reward")} ${formatUSDT(reward)}`}
+    </button>
   );
 }

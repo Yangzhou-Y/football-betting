@@ -29,6 +29,7 @@
 import { useAccount } from "wagmi";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useMounted } from "@/hooks/useMounted";
+import { TableSkeleton, CardListSkeleton } from "@/components/shared/Skeleton";
 import { formatUSDT } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -68,19 +69,11 @@ function RankBadge({ rank }: { rank: number }) {
 export default function LeaderboardPage() {
   const t = useT();
   const mounted = useMounted();
-  const { address, isConnected } = useAccount();
-  const { leaderboard, settledMatches, isLoading, isError, error } = useLeaderboard();
+  const { address } = useAccount();
+  const { leaderboard, settledMatches, isLoading, isError, error, scanProgress } = useLeaderboard();
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
-  }
-
-  if (!isConnected) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-slate-500 text-lg">{t("common.connectWallet")}</p>
-      </div>
-    );
   }
 
   return (
@@ -103,9 +96,22 @@ export default function LeaderboardPage() {
       )}
 
       {!isError && isLoading && (
-        <div className="text-center py-20 text-slate-400">
-          <div className="animate-spin inline-block w-6 h-6 border-2 border-slate-300 border-t-blue-600 rounded-full mb-2" />
-          <p>{t("leaderboard.loading")}</p>
+        <div className="space-y-6">
+          {scanProgress.total > 1 && (
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+              <p className="text-sm text-slate-600 mb-2">{t("leaderboard.scanning")} ({scanProgress.current}/{scanProgress.total})</p>
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round((scanProgress.current / scanProgress.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+          <TableSkeleton rows={6} cols={7} />
+          <div className="sm:hidden">
+            <CardListSkeleton count={4} />
+          </div>
         </div>
       )}
 

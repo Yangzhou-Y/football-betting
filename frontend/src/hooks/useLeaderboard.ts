@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useBlockNumber } from "wagmi";
 import { getContractEvents } from "viem/actions";
@@ -35,6 +35,11 @@ interface RawRewardEvent {
   matchId: bigint;
   user: string;
   rewardAmount: bigint;
+}
+
+export interface ScanProgress {
+  current: number;
+  total: number;
 }
 
 /**
@@ -75,6 +80,9 @@ export function useLeaderboard() {
 
   const fromBlock = deployBlock ? BigInt(deployBlock) : 0n;
 
+  const [scanProgress, setScanProgress] = useState<ScanProgress>({ current: 0, total: 0 });
+  const progressRef = useRef<ScanProgress>({ current: 0, total: 0 });
+
   const { data: leaderboard, isLoading, isError, error } = useQuery({
     queryKey: ["leaderboard", contractAddress, fromBlock.toString()],
     queryFn: async () => {
@@ -87,11 +95,15 @@ export function useLeaderboard() {
         chunks.push({ from, to });
       }
 
+      setScanProgress({ current: 0, total: chunks.length });
+      progressRef.current = { current: 0, total: chunks.length };
+
       const allBets: RawBetEvent[] = [];
       const allRewards: RawRewardEvent[] = [];
 
       // 逐片拉取（顺序执行避免 RPC 限流）
-      for (const { from, to } of chunks) {
+      for (let i = 0; i < chunks.length; i++) {
+        const { from, to } = chunks[i];
         const [betLogs, rewardLogs] = await Promise.all([
           getContractEvents(client, {
             address: contractAddress,
@@ -117,6 +129,10 @@ export function useLeaderboard() {
           const { matchId, user, rewardAmount } = (log as unknown as { args: RawRewardEvent }).args;
           allRewards.push({ matchId, user: user.toLowerCase(), rewardAmount });
         }
+
+        const next = { current: i + 1, total: chunks.length };
+        setScanProgress(next);
+        progressRef.current = next;
       }
 
       return aggregateLeaderboard(allBets, allRewards).slice(0, TOP_N);
@@ -130,7 +146,7 @@ export function useLeaderboard() {
     [matchList],
   );
 
-  return { leaderboard: leaderboard ?? [], settledMatches, isLoading: isLoading || matchesLoading, isError, error };
+  return { leaderboard: leaderboard ?? [], settledMatches, isLoading: isLoading || matchesLoading, isError, error, scanProgress };
 }
 
 export function aggregateLeaderboard(
