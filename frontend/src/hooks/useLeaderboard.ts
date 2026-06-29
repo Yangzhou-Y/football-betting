@@ -146,7 +146,7 @@ export function useLeaderboard() {
     [matchList],
   );
 
-  return { leaderboard: leaderboard ?? [], settledMatches, isLoading: isLoading || matchesLoading, isError, error, scanProgress };
+  return { leaderboard: leaderboard ?? [], settledMatches, isLoading: isLoading || matchesLoading || !currentBlock, isError, error, scanProgress };
 }
 
 export function aggregateLeaderboard(
