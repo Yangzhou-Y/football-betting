@@ -42,6 +42,8 @@ const TEAM_MAP: Record<string, string> = {
 const COMPETITION_MAP: Record<string, string> = {
   "世界杯决赛": "World Cup Final",
   "世界杯半决赛": "World Cup Semi-Final",
+  "世界杯十六分之一决赛": "World Cup Round of 32",
+  "世界杯八分之一决赛": "World Cup Round of 16",
   "世界杯四分之一决赛": "World Cup Quarter-Final",
   "世界杯小组赛": "World Cup Group Stage",
   "世界杯": "World Cup",
