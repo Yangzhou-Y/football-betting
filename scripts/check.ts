@@ -19,6 +19,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
+import { USDT_DECIMALS } from "./shared/usdt";
 
 async function main() {
   // 读取本地部署记录（包含合约地址和 MockERC20 地址）
@@ -42,7 +43,7 @@ async function main() {
     const statuses = ["Created","Open","Closed","Settled"];
     console.log(`\nMatch #${i}: ${statuses[m.status]}`);
     console.log(`  ${ethers.decodeBytes32String(m.homeTeam)} vs ${ethers.decodeBytes32String(m.awayTeam)}`);
-    console.log(`  Pool: ${ethers.formatUnits(m.totalPool,6)} USDT`);
+    console.log(`  Pool: ${ethers.formatUnits(m.totalPool, USDT_DECIMALS)} USDT`);
     console.log(`  Deadline: ${new Date(Number(m.deadline)*1000).toLocaleString()}`);
     console.log(`  Now: ${new Date().toLocaleString()}`);
     console.log(`  Deadline passed: ${m.deadline < BigInt(Math.floor(Date.now()/1000))}`);
@@ -54,8 +55,8 @@ async function main() {
   const usdtBal = await usdt.balanceOf(admin.address);
   const allowance = await usdt.allowance(admin.address, contractAddr);
   console.log(`\n=== Account ${admin.address} ===`);
-  console.log(`USDT Balance: ${ethers.formatUnits(usdtBal, 6)}`);
-  console.log(`USDT Allowance: ${ethers.formatUnits(allowance, 6)}`);
+  console.log(`USDT Balance: ${ethers.formatUnits(usdtBal, USDT_DECIMALS)}`);
+  console.log(`USDT Allowance: ${ethers.formatUnits(allowance, USDT_DECIMALS)}`);
   console.log(`ETH Balance: ${ethers.formatEther(await ethers.provider.getBalance(admin.address))}`);
 }
 

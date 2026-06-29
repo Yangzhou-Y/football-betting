@@ -19,7 +19,7 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
-import { U } from "./shared/usdt";
+import { U, USDT_DECIMALS } from "./shared/usdt";
 
 async function main() {
   const record = JSON.parse(fs.readFileSync(path.join(__dirname,"..","deployments","localhost.json"),"utf-8"));
@@ -37,13 +37,13 @@ async function main() {
   // Status 字段：0=Created, 1=Open, 2=Closed, 3=Settled
   console.log(`Status: ${m.status} (Open=1)`);
   console.log(`Deadline: ${m.deadline}, Now: ${Math.floor(Date.now()/1000)}`);
-  console.log(`minBet: ${ethers.formatUnits(m.minBet, 6)} USDT`);
+  console.log(`minBet: ${ethers.formatUnits(m.minBet, USDT_DECIMALS)} USDT`);
 
   // 检查用户对合约的 USDT 授权额度
   const allowance = await usdt.allowance(admin.address, contractAddr);
   const balance = await usdt.balanceOf(admin.address);
-  console.log(`Allowance: ${ethers.formatUnits(allowance, 6)} USDT`);
-  console.log(`Balance: ${ethers.formatUnits(balance, 6)} USDT`);
+  console.log(`Allowance: ${ethers.formatUnits(allowance, USDT_DECIMALS)} USDT`);
+  console.log(`Balance: ${ethers.formatUnits(balance, USDT_DECIMALS)} USDT`);
 
   // ── 执行投注：0.05 USDT  →  投注"主队胜"（betOn=1） ──
   const betAmount = U("0.05");
