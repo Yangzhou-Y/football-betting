@@ -78,15 +78,15 @@ export function useLeaderboard() {
 
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
 
-  const fromBlock = deployBlock ? BigInt(deployBlock) : 0n;
+  const fromBlock = deployBlock ? BigInt(deployBlock) : null;
 
   const [scanProgress, setScanProgress] = useState<ScanProgress>({ current: 0, total: 0 });
   const progressRef = useRef<ScanProgress>({ current: 0, total: 0 });
 
   const { data: leaderboard, isLoading, isError, error } = useQuery({
-    queryKey: ["leaderboard", contractAddress, fromBlock.toString()],
+    queryKey: ["leaderboard", contractAddress, fromBlock?.toString()],
     queryFn: async () => {
-      if (!client || !contractAddress || !currentBlock) return [];
+      if (!client || !contractAddress || !currentBlock || !fromBlock) return [];
 
       // 按块区间分片拉取，避免单次 eth_getLogs 超限
       const chunks: { from: bigint; to: bigint }[] = [];
@@ -137,7 +137,7 @@ export function useLeaderboard() {
 
       return aggregateLeaderboard(allBets, allRewards).slice(0, TOP_N);
     },
-    enabled: !!client && !!contractAddress && !matchesLoading && !!currentBlock,
+    enabled: !!client && !!contractAddress && !matchesLoading && !!currentBlock && !!fromBlock,
     staleTime: 60_000,
   });
 

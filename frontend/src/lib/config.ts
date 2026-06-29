@@ -37,7 +37,7 @@ export interface DeploymentRecord {
   contractAddress: `0x${string}`;
   usdtAddress: `0x${string}`;
   platformFeeRate: number;
-  deployBlock?: number;  // 部署时的区块号，用于排行榜事件扫描的起始块
+  deployBlock: number;  // 部署时的区块号，用于排行榜和参与人数事件扫描的起始块（必填，避免全链扫描）
 }
 
 /** chainId → 部署记录映射表 */

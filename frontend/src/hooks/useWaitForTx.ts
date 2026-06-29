@@ -14,8 +14,8 @@ export function useWaitForTxAndRefresh(hash: `0x${string}` | undefined) {
 
   useEffect(() => {
     if (receipt.isSuccess) {
-      // Scope to contract-data queries only, not app-wide (avoids expensive leaderboard re-scan)
-      queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] !== "leaderboard" });
+      // Scope to contract-data queries only, not app-wide (avoids expensive leaderboard / participantCounts re-scan)
+      queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] !== "leaderboard" && query.queryKey[0] !== "participantCounts" });
     }
   }, [receipt.isSuccess, queryClient]);
 

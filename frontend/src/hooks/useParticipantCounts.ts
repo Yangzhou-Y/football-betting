@@ -34,13 +34,13 @@ export function useParticipantCounts() {
   const client = usePublicClient();
   const { data: currentBlock } = useBlockNumber();
 
-  const fromBlock = deployBlock ? BigInt(deployBlock) : 0n;
+  const fromBlock = deployBlock ? BigInt(deployBlock) : null;
 
   const { data } = useQuery({
-    queryKey: ["participantCounts", contractAddress, fromBlock.toString()],
+    queryKey: ["participantCounts", contractAddress, fromBlock?.toString()],
     queryFn: async () => {
       const counts = new Map<number, number>();
-      if (!client || !contractAddress || !currentBlock) return counts;
+      if (!client || !contractAddress || !currentBlock || !fromBlock) return counts;
 
       const sets = new Map<number, Set<string>>();
       for (let from = fromBlock; from < currentBlock; from += BLOCK_CHUNK) {
@@ -67,7 +67,7 @@ export function useParticipantCounts() {
       for (const [mid, set] of sets) counts.set(mid, set.size);
       return counts;
     },
-    enabled: !!client && !!contractAddress && !!currentBlock,
+    enabled: !!client && !!contractAddress && !!currentBlock && !!fromBlock,
     staleTime: 60_000,
   });
 
