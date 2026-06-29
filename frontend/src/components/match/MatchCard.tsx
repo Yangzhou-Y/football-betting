@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
-import { MatchStatus } from "@/lib/constants";
+import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
 import { formatUSDT, formatTime, decodeTeamName, calcOdds } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useDeploymentConfig } from "@/lib/config";
@@ -104,10 +104,10 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
             )}
             <div className="bg-red-400" style={{ width: `${awayPct}%` }} title={`${t("result.awayWin")} ${awayPct}%`} />
           </div>
-          <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 mt-1.5 text-[10px] text-slate-400`}>
-            <span className="text-center">{t("pool.odds")} {homeOdds ?? "-"}</span>
-            {match.allowDraw !== false && <span className="text-center">{t("pool.odds")} {drawOdds ?? "-"}</span>}
-            <span className="text-center">{t("pool.odds")} {awayOdds ?? "-"}</span>
+          <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 mt-1.5 text-[10px]`}>
+            <span className="text-center text-blue-500">{t(RESULT_KEYS[Result.HomeWin])} {homeOdds ?? "-"}</span>
+            {match.allowDraw !== false && <span className="text-center text-slate-400">{t(RESULT_KEYS[Result.Draw])} {drawOdds ?? "-"}</span>}
+            <span className="text-center text-red-400">{t(RESULT_KEYS[Result.AwayWin])} {awayOdds ?? "-"}</span>
           </div>
         </>
       )}
