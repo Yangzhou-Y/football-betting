@@ -28,6 +28,13 @@ body {
   vertical-align: -0.06em;
 }
 
+/* 移动端隐藏 datetime-local 选择器图标 —— 节省空间使其与普通 input 等宽 */
+@media (max-width: 639px) {
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+}
+
 /* 数字输入框去掉箭头 */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
