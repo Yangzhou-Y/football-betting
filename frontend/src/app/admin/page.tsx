@@ -94,7 +94,7 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 ref={mgmtSectionRef} className="text-lg font-semibold mb-3">{t("admin.matchMgmt")}</h2>
+        <h2 ref={mgmtSectionRef} className="text-lg font-semibold mb-3 scroll-mt-16">{t("admin.matchMgmt")}</h2>
         <MatchManagement contractAddress={contractAddress!} mgmtSectionRef={mgmtSectionRef} />
       </section>
 
