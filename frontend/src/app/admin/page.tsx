@@ -206,17 +206,17 @@ function CreateMatchForm({ contractAddress }: { contractAddress: string }) {
             value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)} disabled={loading}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="block text-xs text-slate-500 mb-1">{t("admin.startTime")}</label>
           <input
-            className="w-full min-w-0 px-1.5 sm:px-3 py-2 border rounded-lg text-xs sm:text-sm" type="datetime-local"
+            className="w-full px-1.5 sm:px-3 py-2 border rounded-lg text-xs sm:text-sm" type="datetime-local"
             value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={loading}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="block text-xs text-slate-500 mb-1">{t("admin.deadline")}</label>
           <input
-            className="w-full min-w-0 px-1.5 sm:px-3 py-2 border rounded-lg text-xs sm:text-sm" type="datetime-local"
+            className="w-full px-1.5 sm:px-3 py-2 border rounded-lg text-xs sm:text-sm" type="datetime-local"
             value={deadlineTime} onChange={(e) => setDeadlineTime(e.target.value)} disabled={loading}
           />
         </div>
