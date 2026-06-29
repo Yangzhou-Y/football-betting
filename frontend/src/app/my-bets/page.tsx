@@ -30,7 +30,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { useUserAllBets } from "@/hooks/useUserBets";
+import { useUserAllBets, usePreviewReward } from "@/hooks/useUserBets";
 import { useAllMatches } from "@/hooks/useMatches";
 import { useMounted } from "@/hooks/useMounted";
 import { useClaimReward } from "@/hooks/useClaimReward";
@@ -144,25 +144,26 @@ export default function MyBetsPage() {
 
       {/* Claim All banner — shows total claimable rewards */}
       {(() => {
-        const claimable: { idx: number; matchId: bigint; reward: bigint }[] = [];
+        const claimable: number[] = [];
         for (let i = 0; i < matchIds.length; i++) {
-          if (!claimed[i] && rewards[i] > 0n) {
-            claimable.push({ idx: i, matchId: matchIds[i], reward: rewards[i] });
+          if (claimed[i]) continue;
+          const match = matchList.find((_m, j) => j + 1 === Number(matchIds[i]));
+          if (match && match.settled && betOns[i] === match.result) {
+            claimable.push(i);
           }
         }
         if (claimable.length === 0) return null;
-        const totalClaimable = claimable.reduce((s, c) => s + c.reward, 0n);
         return (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <p className="text-green-800 font-semibold">{t("myBets.claimableTotal")}: <span className="font-bold">{formatUSDT(totalClaimable)} USDT</span></p>
+                <p className="text-green-800 font-semibold">{t("myBets.claimableTotal")}</p>
                 <p className="text-xs text-green-600 mt-0.5">{t("myBets.claimableHint").replace("{count}", String(claimable.length))}</p>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {claimable.map((c) => (
-                <ClaimInline key={Number(c.matchId)} matchId={Number(c.matchId)} reward={c.reward} />
+              {claimable.map((i) => (
+                <ClaimButton key={Number(matchIds[i])} matchId={Number(matchIds[i])} />
               ))}
             </div>
           </div>
@@ -221,7 +222,7 @@ export default function MyBetsPage() {
                     <td className="px-4 py-3 text-center">
                       {claimed[i] ? "✅"
                         : match?.settled && betOns[i] === match.result
-                          ? <ClaimInline matchId={Number(mid)} reward={rewards[i]} />
+                          ? <ClaimButton matchId={Number(mid)} />
                           : match?.settled
                             ? "✅"
                             : "⏳"}
@@ -260,7 +261,7 @@ export default function MyBetsPage() {
                 <div className="text-xs">
                   {claimed[i] ? "✅"
                     : match?.settled && betOns[i] === match.result
-                      ? <ClaimInline matchId={Number(mid)} reward={rewards[i]} />
+                      ? <ClaimButton matchId={Number(mid)} />
                       : match?.settled
                         ? "✅"
                         : "⏳"}
@@ -320,12 +321,14 @@ function StatCard({ label, value, color = "text-slate-800" }: { label: string; v
   );
 }
 
-/** Inline claim button for a single match — wraps useClaimReward hook */
-function ClaimInline({ matchId, reward }: { matchId: number; reward: bigint }) {
+/** Claim button that uses previewReward to show the actual claimable amount */
+function ClaimButton({ matchId }: { matchId: number }) {
   const t = useT();
+  const { data: preview } = usePreviewReward(matchId);
   const { handleClaim, isClaiming, isConfirming, isClaimed } = useClaimReward(matchId);
+  const reward = (preview as bigint) ?? 0n;
 
-  if (isClaimed) {
+  if (isClaimed || reward <= 0n) {
     return <span className="text-green-600 text-xs">✅ {t("claim.alreadyClaimed")}</span>;
   }
 
