@@ -26,7 +26,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { useAllMatches } from "@/hooks/useMatches";
 import { useUserAllBets } from "@/hooks/useUserBets";
@@ -130,6 +130,8 @@ export default function MatchesPage() {
   const safePage = Math.min(page, totalPages - 1);
   const paged = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safePage]);
+
   return (
     <div className="space-y-6" key={address}>
       <h1 className="text-xl font-bold">{t("matches.title")}</h1>
@@ -162,7 +164,7 @@ export default function MatchesPage() {
           <p>{t("section.noMatches")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div key={safePage} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-page-enter">
           {paged.map(({ match: m, id }) => {
             const mid = BigInt(id);
             const hasBet = betIds.has(mid);

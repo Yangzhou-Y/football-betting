@@ -28,7 +28,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useUserAllBets } from "@/hooks/useUserBets";
 import { useAllMatches } from "@/hooks/useMatches";
@@ -101,6 +101,8 @@ export default function MyBetsPage() {
   const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageOrder = order.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safePage]);
 
   return (
     <div className="space-y-6" key={address}>

@@ -301,6 +301,8 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
   const safeMgmtPage = Math.min(mgmtPage, mgmtTotalPages - 1);
   const pagedMatches = validMatches.slice(safeMgmtPage * MGMT_PAGE_SIZE, safeMgmtPage * MGMT_PAGE_SIZE + MGMT_PAGE_SIZE);
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safeMgmtPage]);
+
   const mtToast = useTxToast();
   const prevAdminPending = useRef(false);
   const prevAdminConfirmed = useRef(false);
@@ -328,7 +330,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="overflow-x-auto">
+      <div key={`mgmt-${safeMgmtPage}`} className="overflow-x-auto animate-page-enter">
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr>
