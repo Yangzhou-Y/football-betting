@@ -179,20 +179,22 @@ export default function MatchesPage() {
         <div className="flex items-center justify-center gap-3 py-4">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
-            className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            disabled={safePage === 0}
+            aria-label={t("page.prev")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            ← {t("filter.prev") || "上一页"}
+            ←
           </button>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-500 tabular-nums">
             {safePage + 1} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-            className="px-4 py-2 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            disabled={safePage >= totalPages - 1}
+            aria-label={t("page.next")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            {t("filter.next") || "下一页"} →
+            →
           </button>
         </div>
       )}
