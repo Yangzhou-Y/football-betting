@@ -133,9 +133,6 @@ export default function MatchesPage() {
   });
 
   filtered.sort((a, b) => {
-    const aBet = betIds.has(BigInt(a.id)) ? 0 : 1;
-    const bBet = betIds.has(BigInt(b.id)) ? 0 : 1;
-    if (aBet !== bBet) return aBet - bBet;
     const cmp = Number(a.match.startTime - b.match.startTime);
     return sortNewest ? -cmp : cmp;
   });
