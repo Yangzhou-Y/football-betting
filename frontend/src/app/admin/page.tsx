@@ -68,6 +68,7 @@ export default function AdminPage() {
   const mounted = useMounted();
   const { isConnected } = useAccount();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  const mgmtSectionRef = useRef<HTMLHeadingElement>(null);
   const { contractAddress, chainId } = useDeploymentConfig();
 
   if (!mounted) {
@@ -93,8 +94,8 @@ export default function AdminPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">{t("admin.matchMgmt")}</h2>
-        <MatchManagement contractAddress={contractAddress!} />
+        <h2 ref={mgmtSectionRef} className="text-lg font-semibold mb-3">{t("admin.matchMgmt")}</h2>
+        <MatchManagement contractAddress={contractAddress!} mgmtSectionRef={mgmtSectionRef} />
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -280,7 +281,7 @@ function toDatetimeLocal(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function MatchManagement({ contractAddress }: { contractAddress: string }) {
+function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress: string; mgmtSectionRef: { current: HTMLHeadingElement | null } }) {
   const t = useT();
   const { lang } = useLang();
   const { data: matches } = useAllMatches();
@@ -301,7 +302,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
   const safeMgmtPage = Math.min(mgmtPage, mgmtTotalPages - 1);
   const pagedMatches = validMatches.slice(safeMgmtPage * MGMT_PAGE_SIZE, safeMgmtPage * MGMT_PAGE_SIZE + MGMT_PAGE_SIZE);
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safeMgmtPage]);
+  useEffect(() => { mgmtSectionRef.current?.scrollIntoView({ behavior: "smooth" }); }, [safeMgmtPage]);
 
   const mtToast = useTxToast();
   const prevAdminPending = useRef(false);
