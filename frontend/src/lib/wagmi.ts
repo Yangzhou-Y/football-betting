@@ -23,8 +23,8 @@ export const confluxTestnet = defineChain({
   },
 });
 
-/** 所有支持的网络 */
-export const supportedChains = [hardhatLocal, confluxTestnet] as const;
+/** 所有支持的网络 — Conflux 测试网放首位作为默认链（公开 RPC，无需钱包即可访问） */
+export const supportedChains = [confluxTestnet, hardhatLocal] as const;
 
 /** chainId → 网络名称映射（用于查找部署记录文件） */
 export const CHAIN_ID_TO_DEPLOY_FILE: Record<number, string> = {
