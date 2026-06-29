@@ -17,10 +17,10 @@
  *
  * 【chainId 回退逻辑】
  *   ① 优先使用钱包当前连接的 chain.id
- *   ② 若钱包未连接（chain 为 undefined），回退到第一个存在的链
- *      - 如果 localhost.json 存在 → 31337（开发模式）
- *      - 否则 → 71（测试网模式）
- *   这确保了在开发环境和生产环境都能正确回退。
+ *   ② 若钱包未连接（chain 为 undefined），回退到测试网（71）
+ *      - 测试网 RPC（Conflux eSpace Testnet）是公开可用的 HTTPS 端点
+ *      - 本地 Hardhat 节点（31337）仅在开发者连接 MetaMask 时使用
+ *   这确保 Vercel 部署环境未连接钱包也能正常加载赛事数据。
  *
  * 【isReady 标记的作用】
  *   isReady 为 true 时才发起合约调用，避免在钱包未连接时产生 RPC 错误。
@@ -48,8 +48,8 @@ const DEPLOYMENTS: Record<number, DeploymentRecord> = {
 
 export function useDeploymentConfig() {
   const { chain } = useAccount();
-  // 未连接钱包时回退到受支持链中的第一个（本地开发→31337, 测试网→71）
-  const chainId = chain?.id ?? (DEPLOYMENTS[31337] ? 31337 : 71);
+  // 未连接钱包时默认使用测试网（71），因为测试网 RPC 公开可用，本地 Hardhat 仅开发时运行
+  const chainId = chain?.id ?? 71;
   const record = DEPLOYMENTS[chainId];
 
   return {
