@@ -343,7 +343,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
           {mgmtSortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
         </button>
       </div>
-      <div key={`mgmt-${safeMgmtPage}`} className="overflow-x-auto animate-page-enter">
+      <div key={`mgmt-${safeMgmtPage}-${String(mgmtSortNewest)}`} className="overflow-x-auto animate-page-enter">
         <table className="w-full text-xs sm:text-sm">
           <thead className="bg-slate-50">
             <tr>

@@ -181,7 +181,7 @@ export default function MyBetsPage() {
       })()}
 
       {/* Desktop table */}
-      <div key={`d-${safePage}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
+      <div key={`d-${safePage}-${String(sortNewest)}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
@@ -246,7 +246,7 @@ export default function MyBetsPage() {
       </div>
 
       {/* Mobile card list */}
-      <div key={`m-${safePage}`} className="sm:hidden space-y-3 animate-page-enter">
+      <div key={`m-${safePage}-${String(sortNewest)}`} className="sm:hidden space-y-3 animate-page-enter">
         {pageOrder.map((i) => {
           const mid = matchIds[i];
           const match = matchList.find((_m, j) => j + 1 === Number(mid));
