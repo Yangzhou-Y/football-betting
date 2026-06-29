@@ -271,6 +271,15 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
     prevCancelled.current = isCancelled;
   }, [isCancelling, isCancelled, cancelError]);
 
+  const quickAmounts = useMemo(() => {
+    const amounts = [1, 10, 100];
+    return amounts.map((n) => {
+      const wei = parseUnits(String(n), USDT_DECIMALS);
+      const inRange = wei >= minBet && (maxBet <= 0n || wei <= maxBet);
+      return { label: String(n), wei, inRange };
+    });
+  }, [minBet, maxBet]);
+
   if (isBetSuccess) {
     return (
       <div className="bg-green-50 rounded-xl p-6 text-center border border-green-200">
@@ -340,20 +349,13 @@ function BettingPanelInner({ matchId, minBet, maxBet, homeTeam, awayTeam, allowD
           <span className="text-sm text-slate-500">USDT</span>
         </div>
         <div className="flex gap-2 mt-2">
-          {useMemo(() => {
-            const rawAmounts = [1, 10, 100];
-            return rawAmounts.map((n) => {
-              const wei = parseUnits(String(n), USDT_DECIMALS);
-              const inRange = wei >= minBet && (maxBet <= 0n || wei <= maxBet);
-              return { label: String(n), wei, inRange };
-            });
-          }, [minBet, maxBet]).map(({ label, inRange }) => (
+          {quickAmounts.map(({ label, inRange }) => (
             <button
               key={label}
               type="button"
               onClick={() => setBetAmount(label)}
               disabled={loading || !inRange}
-              title={!inRange ? (minBet > parseUnits(label, USDT_DECIMALS) ? t("bet.belowMin") : t("bet.aboveMax")) : undefined}
+              title={!inRange ? (parseUnits(label, USDT_DECIMALS) < minBet ? t("bet.belowMin") : t("bet.aboveMax")) : undefined}
               className="flex-1 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 disabled:opacity-30 transition"
             >
               {label}
