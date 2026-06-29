@@ -64,6 +64,8 @@ export default function MatchesPage() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
+
   const { data: matches, isLoading, isError, error } = useAllMatches();
   const { data: betsRaw } = useUserAllBets();
   const participantCounts = useParticipantCounts();
@@ -129,8 +131,6 @@ export default function MatchesPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const paged = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
-
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safePage]);
 
   return (
     <div className="space-y-6" key={address}>

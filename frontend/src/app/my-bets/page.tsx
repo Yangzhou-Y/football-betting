@@ -53,6 +53,8 @@ export default function MyBetsPage() {
   const { data: matches } = useAllMatches();
   const [page, setPage] = useState(0);
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
+
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
@@ -101,8 +103,6 @@ export default function MyBetsPage() {
   const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageOrder = order.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
-
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [safePage]);
 
   return (
     <div className="space-y-6" key={address}>
