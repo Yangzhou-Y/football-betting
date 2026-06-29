@@ -57,7 +57,7 @@ import { AmountDisplay } from "@/components/shared/AmountDisplay";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { MatchStatus, RESULT_KEYS, Result } from "@/lib/constants";
 import type { MatchStruct } from "@/lib/types";
-import { encodeTeamName, decodeTeamName, parseUSDT, formatUSDT } from "@/lib/utils";
+import { encodeTeamName, decodeTeamName, parseUSDT, formatUSDT, formatTime } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { parseContractError } from "@/lib/errors";
 import { useT, useLang } from "@/lib/i18n";
@@ -285,13 +285,21 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
   const { lang } = useLang();
   const { data: matches } = useAllMatches();
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
+  const [mgmtPage, setMgmtPage] = useState(0);
 
   const { writeContract, data: adminHash, isPending: isAdminPending, error: adminError } = useWriteContract();
   const { isSuccess: adminConfirmed } = useWaitForTxAndRefresh(adminHash);
 
   const validMatches = matchList
     .map((m, i) => ({ match: m, id: i + 1 }))
-    .filter(({ match }) => match.startTime > 0n);
+    .filter(({ match }) => match.startTime > 0n)
+    .sort((a, b) => Number(b.match.startTime - a.match.startTime));
+
+  // 分页：每页最多 15 条
+  const MGMT_PAGE_SIZE = 15;
+  const mgmtTotalPages = Math.max(1, Math.ceil(validMatches.length / MGMT_PAGE_SIZE));
+  const safeMgmtPage = Math.min(mgmtPage, mgmtTotalPages - 1);
+  const pagedMatches = validMatches.slice(safeMgmtPage * MGMT_PAGE_SIZE, safeMgmtPage * MGMT_PAGE_SIZE + MGMT_PAGE_SIZE);
 
   const mtToast = useTxToast();
   const prevAdminPending = useRef(false);
@@ -331,7 +339,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {validMatches.map(({ match: m, id: mid }) => (
+            {pagedMatches.map(({ match: m, id: mid }) => (
               <tr key={mid} className="hover:bg-slate-50">
                 <td className="px-3 py-2 text-slate-400">{mid}</td>
                 <td className="px-3 py-2">
@@ -339,6 +347,7 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
                     <div className="text-[10px] text-slate-400">{translateName(decodeTeamName(m.matchName), lang)}</div>
                   )}
                   <span className="inline-flex items-center gap-1.5"><TeamNameDisplay hex={m.homeTeam} /><span className="text-slate-400 text-xs">VS</span><TeamNameDisplay hex={m.awayTeam} flagAfter /></span>
+                  <div className="text-[10px] text-slate-400 mt-0.5">{formatTime(m.startTime)}</div>
                 </td>
                 <td className="px-3 py-2 text-center"><MatchStatusBadge status={m.status} deadline={m.deadline} /></td>
                 <td className="px-3 py-2 text-right">
@@ -362,6 +371,29 @@ function MatchManagement({ contractAddress }: { contractAddress: string }) {
           </tbody>
         </table>
       </div>
+      {mgmtTotalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 py-3 border-t border-slate-100">
+          <button
+            onClick={() => setMgmtPage((p) => Math.max(0, p - 1))}
+            disabled={safeMgmtPage === 0}
+            aria-label={t("page.prev")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ←
+          </button>
+          <span className="text-sm text-slate-500 tabular-nums">
+            {safeMgmtPage + 1} / {mgmtTotalPages}
+          </span>
+          <button
+            onClick={() => setMgmtPage((p) => Math.min(mgmtTotalPages - 1, p + 1))}
+            disabled={safeMgmtPage >= mgmtTotalPages - 1}
+            aria-label={t("page.next")}
+            className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            →
+          </button>
+        </div>
+      )}
       {validMatches.some(({ match: m }) => m.status === MatchStatus.Created) && (
         <p className="text-xs text-slate-400 px-3 py-2 bg-slate-50 border-t border-slate-100">{t("admin.deleteHint")}</p>
       )}

@@ -39,7 +39,7 @@ import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
 import { Result } from "@/lib/constants";
 import { RESULT_KEYS } from "@/lib/constants";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
-import { formatUSDT, decodeTeamName } from "@/lib/utils";
+import { formatUSDT, formatTime, decodeTeamName } from "@/lib/utils";
 import { translateName } from "@/lib/nameMap";
 import { useT, useLang } from "@/lib/i18n";
 import Link from "next/link";
@@ -89,9 +89,15 @@ export default function MyBetsPage() {
     }
   }
 
-  // 分页：每页最多 10 条，按 matchId 降序（较新的投注排在前）
-  const PAGE_SIZE = 10;
-  const order = matchIds.map((_, i) => i).sort((a, b) => Number(matchIds[b] - matchIds[a]));
+  // 分页：每页最多 15 条，按 startTime 降序（最近发生的比赛排在最前）
+  const PAGE_SIZE = 15;
+  const order = matchIds.map((_, i) => i).sort((a, b) => {
+    const matchA = matchList.find((_m, j) => j + 1 === Number(matchIds[a]));
+    const matchB = matchList.find((_m, j) => j + 1 === Number(matchIds[b]));
+    const timeA = matchA ? matchA.startTime : 0n;
+    const timeB = matchB ? matchB.startTime : 0n;
+    return Number(timeB - timeA);
+  });
   const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageOrder = order.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
@@ -137,6 +143,7 @@ export default function MyBetsPage() {
                             <div className="text-[10px] text-slate-400">{translateName(decodeTeamName(match.matchName), lang)}</div>
                           )}
                           <span className="inline-flex items-center gap-1.5"><TeamNameDisplay hex={match.homeTeam} /><span className="text-slate-400 text-xs">VS</span><TeamNameDisplay hex={match.awayTeam} flagAfter /></span>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{formatTime(match.startTime)}</div>
                         </Link>
                       ) : (
                         <span className="text-slate-400">{t("common.matchNum")}{String(mid)} {match ? t("myBets.deleted") : ""}</span>
@@ -192,6 +199,7 @@ export default function MyBetsPage() {
                         <span className="text-slate-400 text-xs">VS</span>
                         <TeamNameDisplay hex={match!.awayTeam} flagAfter />
                       </span>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{formatTime(match!.startTime)}</div>
                     </Link>
                   ) : (
                     <span className="text-slate-400 text-sm">{t("common.matchNum")}{String(mid)} {match ? t("myBets.deleted") : ""}</span>
