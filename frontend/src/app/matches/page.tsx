@@ -64,6 +64,7 @@ export default function MatchesPage() {
   });
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
+  const [sortNewest, setSortNewest] = useState(true);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
@@ -135,7 +136,8 @@ export default function MatchesPage() {
     const aBet = betIds.has(BigInt(a.id)) ? 0 : 1;
     const bBet = betIds.has(BigInt(b.id)) ? 0 : 1;
     if (aBet !== bBet) return aBet - bBet;
-    return Number(a.match.startTime - b.match.startTime);
+    const cmp = Number(a.match.startTime - b.match.startTime);
+    return sortNewest ? -cmp : cmp;
   });
 
   // Client-side pagination: slice the filtered list
@@ -154,7 +156,7 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -168,6 +170,13 @@ export default function MatchesPage() {
             {f.label}
           </button>
         ))}
+        <div className="flex-1" />
+        <button
+          onClick={() => { setSortNewest((v) => !v); setPage(0); }}
+          className="px-3 py-1.5 rounded-full text-sm bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
+        >
+          {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
+        </button>
       </div>
 
       {paged.length === 0 ? (

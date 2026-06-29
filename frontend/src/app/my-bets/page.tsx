@@ -54,6 +54,7 @@ export default function MyBetsPage() {
   const { data: betsRaw, isLoading: betsLoading } = useUserAllBets();
   const { data: matches, isLoading: matchesLoading } = useAllMatches();
   const [page, setPage] = useState(0);
+  const [sortNewest, setSortNewest] = useState(true);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
@@ -114,14 +115,15 @@ export default function MyBetsPage() {
     }
   }
 
-  // 分页：每页最多 15 条，按 startTime 降序（最近发生的比赛排在最前）
+  // 分页：每页最多 15 条，按 startTime 排序
   const PAGE_SIZE = 15;
   const order = matchIds.map((_, i) => i).sort((a, b) => {
     const matchA = matchList.find((_m, j) => j + 1 === Number(matchIds[a]));
     const matchB = matchList.find((_m, j) => j + 1 === Number(matchIds[b]));
     const timeA = matchA ? matchA.startTime : 0n;
     const timeB = matchB ? matchB.startTime : 0n;
-    return Number(timeB - timeA);
+    const cmp = Number(timeA - timeB);
+    return sortNewest ? -cmp : cmp;
   });
   const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
@@ -129,7 +131,15 @@ export default function MyBetsPage() {
 
   return (
     <div className="space-y-6" key={address}>
-      <h1 className="text-xl font-bold">{t("myBets.title")}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">{t("myBets.title")}</h1>
+        <button
+          onClick={() => { setSortNewest((v) => !v); setPage(0); }}
+          className="px-3 py-1.5 rounded-full text-xs bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
+        >
+          {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <StatCard label={t("myBets.totalBets")} value={String(matchIds.length)} />

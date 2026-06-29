@@ -287,6 +287,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   const { data: matches } = useAllMatches();
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
   const [mgmtPage, setMgmtPage] = useState(0);
+  const [mgmtSortNewest, setMgmtSortNewest] = useState(true);
 
   const { writeContract, data: adminHash, isPending: isAdminPending, error: adminError } = useWriteContract();
   const { isSuccess: adminConfirmed } = useWaitForTxAndRefresh(adminHash);
@@ -294,7 +295,10 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   const validMatches = matchList
     .map((m, i) => ({ match: m, id: i + 1 }))
     .filter(({ match }) => match.startTime > 0n)
-    .sort((a, b) => Number(b.match.startTime - a.match.startTime));
+    .sort((a, b) => {
+      const cmp = Number(a.match.startTime - b.match.startTime);
+      return mgmtSortNewest ? -cmp : cmp;
+    });
 
   // 分页：每页最多 15 条
   const MGMT_PAGE_SIZE = 15;
@@ -331,6 +335,14 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="flex items-center justify-end px-3 py-2 border-b border-slate-100">
+        <button
+          onClick={() => { setMgmtSortNewest((v) => !v); setMgmtPage(0); }}
+          className="px-2 py-1 rounded-full text-[10px] sm:text-xs bg-slate-50 text-slate-600 border border-slate-200 hover:border-blue-300 transition"
+        >
+          {mgmtSortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
+        </button>
+      </div>
       <div key={`mgmt-${safeMgmtPage}`} className="overflow-x-auto animate-page-enter">
         <table className="w-full text-xs sm:text-sm">
           <thead className="bg-slate-50">

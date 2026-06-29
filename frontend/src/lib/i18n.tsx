@@ -149,6 +149,8 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.quickAmount": "快捷金额",
     "page.prev": "上一页",
     "page.next": "下一页",
+    "sort.newest": "最近优先",
+    "sort.oldest": "最早优先",
 
     // 管理
     "admin.title": "管理后台",
@@ -472,6 +474,8 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.quickAmount": "Quick amount",
     "page.prev": "Previous",
     "page.next": "Next",
+    "sort.newest": "Newest first",
+    "sort.oldest": "Oldest first",
 
     // Admin
     "admin.title": "Admin Panel",
