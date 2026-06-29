@@ -332,29 +332,29 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div key={`mgmt-${safeMgmtPage}`} className="overflow-x-auto animate-page-enter">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left px-3 py-2">#</th>
-              <th className="text-left px-3 py-2">{t("admin.table.match")}</th>
-              <th className="text-center px-3 py-2">{t("admin.table.status")}</th>
-              <th className="text-right px-3 py-2">{t("admin.table.actions")}</th>
+              <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2">#</th>
+              <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2">{t("admin.table.match")}</th>
+              <th className="text-center px-1.5 sm:px-3 py-1.5 sm:py-2">{t("admin.table.status")}</th>
+              <th className="text-right px-1.5 sm:px-3 py-1.5 sm:py-2">{t("admin.table.actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {pagedMatches.map(({ match: m, id: mid }) => (
               <tr key={mid} className="hover:bg-slate-50">
-                <td className="px-3 py-2 text-slate-400">{mid}</td>
-                <td className="px-3 py-2">
+                <td className="px-1.5 sm:px-3 py-1.5 sm:py-2 text-slate-400">{mid}</td>
+                <td className="px-1.5 sm:px-3 py-1.5 sm:py-2">
                   {m.matchName && m.matchName !== "0x0000000000000000000000000000000000000000000000000000000000000000" && (
-                    <div className="text-[10px] text-slate-400">{translateName(decodeTeamName(m.matchName), lang)}</div>
+                    <div className="text-[8px] sm:text-[10px] text-slate-400">{translateName(decodeTeamName(m.matchName), lang)}</div>
                   )}
-                  <span className="inline-flex items-center gap-1.5"><TeamNameDisplay hex={m.homeTeam} /><span className="text-slate-400 text-xs">VS</span><TeamNameDisplay hex={m.awayTeam} flagAfter /></span>
-                  <div className="text-[10px] text-slate-400 mt-0.5">{formatTime(m.startTime)}</div>
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5"><TeamNameDisplay hex={m.homeTeam} /><span className="text-slate-400 text-[10px] sm:text-xs">VS</span><TeamNameDisplay hex={m.awayTeam} flagAfter /></span>
+                  <div className="text-[8px] sm:text-[10px] text-slate-400 mt-0.5">{formatTime(m.startTime)}</div>
                 </td>
-                <td className="px-3 py-2 text-center"><MatchStatusBadge status={m.status} deadline={m.deadline} /></td>
-                <td className="px-3 py-2 text-right">
-                  <div className="flex gap-1 justify-end">
+                <td className="px-1.5 sm:px-3 py-1.5 sm:py-2 text-center"><MatchStatusBadge status={m.status} deadline={m.deadline} /></td>
+                <td className="px-1.5 sm:px-3 py-1.5 sm:py-2 text-right">
+                  <div className="flex gap-0.5 sm:gap-1 justify-end">
                     {m.status === MatchStatus.Created && (
                       <>
                         <Btn onClick={() => adminAction("openMatch", [mid])} label={t("admin.open")} variant="green" disabled={isAdminPending} />
@@ -413,7 +413,7 @@ function Btn({ onClick, label, variant, disabled }: { onClick: () => void; label
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-2 py-1 rounded text-xs text-white ${cls} transition disabled:opacity-50`}
+      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs text-white ${cls} transition disabled:opacity-50`}
     >
       {disabled ? "..." : label}
     </button>
@@ -481,7 +481,7 @@ function RecordBtn({ contractAddress, matchId, matchName, homeTeam, awayTeam }: 
 
   return (
     <>
-      <button onClick={() => setShow(true)} className="px-2 py-1 rounded text-xs text-white bg-blue-600 hover:bg-blue-700">
+      <button onClick={() => setShow(true)} className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs text-white bg-blue-600 hover:bg-blue-700">
         {t("admin.record")}
       </button>
       {show && createPortal(
@@ -588,7 +588,7 @@ function DeleteBtn({ contractAddress, matchId, matchName, homeTeam, awayTeam }: 
 
   return (
     <>
-      <button onClick={() => setShow(true)} className="px-2 py-1 rounded text-xs text-white bg-red-500 hover:bg-red-600 transition">
+      <button onClick={() => setShow(true)} className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs text-white bg-red-500 hover:bg-red-600 transition">
         {t("admin.delete")}
       </button>
       {show && (
