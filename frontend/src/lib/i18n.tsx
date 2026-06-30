@@ -149,8 +149,14 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.quickAmount": "快捷金额",
     "page.prev": "上一页",
     "page.next": "下一页",
+    "page.first": "首页",
+    "page.last": "末页",
+    "page.jumpTo": "跳转",
+    "page.go": "前往",
     "sort.newest": "最近优先",
     "sort.oldest": "最早优先",
+    "filter.date": "日期筛选",
+    "filter.team": "搜索球队",
 
     // 管理
     "admin.title": "管理后台",
@@ -236,7 +242,10 @@ const dict: Record<Lang, Record<string, string>> = {
     // 统计
     "stats.totalMatches": "赛事总数",
     "stats.totalPool": "累计奖池",
+    "stats.activePool": "竞猜中奖池",
     "stats.openMatches": "投注中",
+    "stats.settledCount": "已开奖",
+    "stats.matchBreakdown": "共 {total} 场 · 竞猜中 {open} 场 · 已开奖 {settled} 场",
 
     // 分区
     "section.hot": "🔥 热门赛事",
@@ -474,8 +483,14 @@ const dict: Record<Lang, Record<string, string>> = {
     "bet.quickAmount": "Quick amount",
     "page.prev": "Previous",
     "page.next": "Next",
+    "page.first": "First",
+    "page.last": "Last",
+    "page.jumpTo": "Go to page",
+    "page.go": "Go",
     "sort.newest": "Newest first",
     "sort.oldest": "Oldest first",
+    "filter.date": "Filter by date",
+    "filter.team": "Search team",
 
     // Admin
     "admin.title": "Admin Panel",
@@ -561,7 +576,10 @@ const dict: Record<Lang, Record<string, string>> = {
     // Stats
     "stats.totalMatches": "Total Matches",
     "stats.totalPool": "Total Pool",
+    "stats.activePool": "Active Pool",
     "stats.openMatches": "Open",
+    "stats.settledCount": "Settled",
+    "stats.matchBreakdown": "{total} total · {open} open · {settled} settled",
 
     // Sections
     "section.hot": "🔥 Hot Matches",

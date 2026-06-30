@@ -4,7 +4,7 @@
  * ============================================================================
  *
  * 【页面结构】
- *   ① 三栏统计卡片：赛事总数 / 累计奖池 / 投注中数量
+ *   ① 三栏统计卡片：赛事总数（含竞猜中/已开奖明细）/ 累计奖池 / 竞猜中奖池
  *   ② 热门赛事区：奖池 > 0 的 Open 赛事，按总奖池降序取前 3 名
  *   ③ 即将开赛区：Created/Open 状态，按开赛时间排序取前 6 场
  *   ④ 空状态提示：无赛事时引导管理员创建
@@ -111,6 +111,8 @@ export default function HomePage() {
 
   const totalPool = validMatches.reduce((sum, { match }) => sum + match.totalPool, 0n);
   const openMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Open);
+  const settledMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Settled);
+  const activePool = openMatches.reduce((sum, { match }) => sum + match.totalPool, 0n);
   const upcomingMatches = validMatches
     .filter(({ match }) => match.status === MatchStatus.Created || match.status === MatchStatus.Open)
     .sort((a, b) => Number(a.match.startTime - b.match.startTime));
@@ -118,9 +120,16 @@ export default function HomePage() {
   return (
     <div className="space-y-8 relative" key={address}>
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <StatCard label={t("stats.totalMatches")} value={String(validMatches.length)} />
+        <StatCard label={t("stats.totalMatches")} value={String(validMatches.length)}>
+          <p className="text-xs text-slate-400 mt-1">
+            {t("stats.matchBreakdown")
+              .replace("{total}", String(validMatches.length))
+              .replace("{open}", String(openMatches.length))
+              .replace("{settled}", String(settledMatches.length))}
+          </p>
+        </StatCard>
         <StatCard label={t("stats.totalPool")} value={`${formatUSDT(totalPool)} USDT`} color="text-blue-600" />
-        <StatCard label={t("stats.openMatches")} value={`${openMatches.length}`} color="text-green-600" />
+        <StatCard label={t("stats.activePool")} value={`${formatUSDT(activePool)} USDT`} color="text-green-600" />
       </div>
 
       {(() => {
@@ -162,11 +171,12 @@ export default function HomePage() {
   );
 }
 
-function StatCard({ label, value, color = "text-slate-800" }: { label: string; value: string; color?: string }) {
+function StatCard({ label, value, color = "text-slate-800", children }: { label: string; value: string; color?: string; children?: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl p-3 sm:p-5 shadow-sm border border-slate-200">
       <p className="text-xs sm:text-sm text-slate-500">{label}</p>
       <p className={`text-base sm:text-2xl font-bold mt-0.5 sm:mt-1 tabular-nums ${color}`}>{value}</p>
+      {children}
     </div>
   );
 }

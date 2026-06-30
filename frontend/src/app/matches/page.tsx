@@ -5,7 +5,7 @@
  *
  * 【筛选功能】
  *   全部 / 已投注（当前用户）/ 投注中（Open）/ 已封盘（Closed）/ 已开奖（Settled）
- *   切换筛选器时自动重置到第 1 页
+ *   日期筛选 + 球队名称搜索，切换任一筛选器均自动重置到第 1 页
  *
  * 【分页策略 — 客户端分页】
  *   从 getAllMatches() 获取全部比赛，在前端通过 .slice() 实现分页。
@@ -65,6 +65,9 @@ export default function MatchesPage() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [sortNewest, setSortNewest] = useState(true);
+  const [filterDate, setFilterDate] = useState("");
+  const [filterTeam, setFilterTeam] = useState("");
+  const [jumpInput, setJumpInput] = useState("");
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
@@ -129,7 +132,22 @@ export default function MatchesPage() {
   // Apply filter to the full list
   const filtered = allValid.filter(({ match: m, id }) => {
     if (filter === "my") return betIds.has(BigInt(id));
-    return FILTERS.find((f) => f.key === filter)?.match(m) ?? true;
+    if (!(FILTERS.find((f) => f.key === filter)?.match(m) ?? true)) return false;
+    // Date filter: match startTime falls on the selected date (UTC+8)
+    if (filterDate) {
+      const matchDate = new Date(Number(m.startTime) * 1000);
+      const matchDateStr = matchDate.toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+      const filterDateStr = new Date(filterDate + "T00:00:00+08:00").toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+      if (matchDateStr !== filterDateStr) return false;
+    }
+    // Team name filter (case-insensitive, searches homeTeam and awayTeam)
+    if (filterTeam.trim()) {
+      const q = filterTeam.trim().toLowerCase();
+      const home = (m.homeTeam ?? "").toLowerCase();
+      const away = (m.awayTeam ?? "").toLowerCase();
+      if (!home.includes(q) && !away.includes(q)) return false;
+    }
+    return true;
   });
 
   filtered.sort((a, b) => {
@@ -153,27 +171,69 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <div className="flex gap-2 flex-wrap items-center">
-        {FILTERS.map((f) => (
+      <div className="space-y-3">
+        {/* Row 1: status filters + sort */}
+        <div className="flex gap-2 flex-wrap items-center">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => { setFilter(f.key); setPage(0); }}
+              className={`px-4 py-1.5 rounded-full text-sm transition ${
+                filter === f.key
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+          <div className="flex-1" />
           <button
-            key={f.key}
-            onClick={() => { setFilter(f.key); setPage(0); }}
-            className={`px-4 py-1.5 rounded-full text-sm transition ${
-              filter === f.key
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300"
-            }`}
+            onClick={() => { setSortNewest((v) => !v); setPage(0); }}
+            className="px-3 py-1.5 rounded-full text-sm bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
           >
-            {f.label}
+            {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
           </button>
-        ))}
-        <div className="flex-1" />
-        <button
-          onClick={() => { setSortNewest((v) => !v); setPage(0); }}
-          className="px-3 py-1.5 rounded-full text-sm bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
-        >
-          {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
-        </button>
+        </div>
+
+        {/* Row 2: date filter + team search */}
+        <div className="flex gap-3 flex-wrap items-center">
+          <label className="flex items-center gap-2 text-sm text-slate-500">
+            <span>{t("filter.date")}</span>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => { setFilterDate(e.target.value); setPage(0); }}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-400 transition"
+            />
+            {filterDate && (
+              <button
+                onClick={() => { setFilterDate(""); setPage(0); }}
+                className="text-xs text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-500">
+            <span>{t("filter.team")}</span>
+            <input
+              type="text"
+              value={filterTeam}
+              onChange={(e) => { setFilterTeam(e.target.value); setPage(0); }}
+              placeholder="e.g. Brazil"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white w-40 focus:outline-none focus:border-blue-400 transition"
+            />
+            {filterTeam && (
+              <button
+                onClick={() => { setFilterTeam(""); setPage(0); }}
+                className="text-xs text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </label>
+        </div>
       </div>
 
       {paged.length === 0 ? (
@@ -195,7 +255,16 @@ export default function MatchesPage() {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 py-4">
+        <div className="flex items-center justify-center gap-2 py-4">
+          <button
+            onClick={() => setPage(0)}
+            disabled={safePage === 0}
+            aria-label={t("page.first")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.first")}
+          >
+            «
+          </button>
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={safePage === 0}
@@ -204,7 +273,7 @@ export default function MatchesPage() {
           >
             ←
           </button>
-          <span className="text-sm text-slate-500 tabular-nums">
+          <span className="text-sm text-slate-500 tabular-nums min-w-[80px] text-center">
             {safePage + 1} / {totalPages}
           </span>
           <button
@@ -214,6 +283,41 @@ export default function MatchesPage() {
             className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             →
+          </button>
+          <button
+            onClick={() => setPage(totalPages - 1)}
+            disabled={safePage >= totalPages - 1}
+            aria-label={t("page.last")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.last")}
+          >
+            »
+          </button>
+          <span className="text-sm text-slate-400 mx-1">{t("page.jumpTo")}</span>
+          <input
+            type="number"
+            min={1}
+            max={totalPages}
+            value={jumpInput}
+            onChange={(e) => setJumpInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const n = parseInt(jumpInput);
+                if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+              }
+            }}
+            placeholder={`1-${totalPages}`}
+            className="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-center bg-white focus:outline-none focus:border-blue-400 transition"
+          />
+          <button
+            onClick={() => {
+              const n = parseInt(jumpInput);
+              if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+            }}
+            disabled={!jumpInput}
+            className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            {t("page.go")}
           </button>
         </div>
       )}
