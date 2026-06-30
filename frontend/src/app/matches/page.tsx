@@ -37,8 +37,9 @@ import { MatchCardGridSkeleton } from "@/components/shared/Skeleton";
 import { MatchStatus } from "@/lib/constants";
 import { useDeploymentConfig } from "@/lib/config";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
 import { decodeTeamName } from "@/lib/utils";
+import { translateName } from "@/lib/nameMap";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
 /** 每页显示的赛事卡片数 */
@@ -46,6 +47,7 @@ const PAGE_SIZE = 12;
 
 export default function MatchesPage() {
   const t = useT();
+  const { lang } = useLang();
   const mounted = useMounted();
   const { address, isConnected } = useAccount();
   const FILTERS = [
@@ -143,11 +145,14 @@ export default function MatchesPage() {
     }
     // Team name filter (case-insensitive, searches homeTeam and awayTeam)
     // homeTeam/awayTeam are stored as bytes32 hex, must decode before comparison
+    // Also check translated variants so users can search in both Chinese and English
     if (filterTeam.trim()) {
       const q = filterTeam.trim().toLowerCase();
-      const home = decodeTeamName(m.homeTeam ?? "").toLowerCase();
-      const away = decodeTeamName(m.awayTeam ?? "").toLowerCase();
-      if (!home.includes(q) && !away.includes(q)) return false;
+      const homeRaw = decodeTeamName(m.homeTeam ?? "");
+      const awayRaw = decodeTeamName(m.awayTeam ?? "");
+      const homes = [homeRaw.toLowerCase(), translateName(homeRaw, "zh").toLowerCase(), translateName(homeRaw, "en").toLowerCase()];
+      const aways = [awayRaw.toLowerCase(), translateName(awayRaw, "zh").toLowerCase(), translateName(awayRaw, "en").toLowerCase()];
+      if (!homes.some((h) => h.includes(q)) && !aways.some((a) => a.includes(q))) return false;
     }
     return true;
   });
@@ -223,7 +228,7 @@ export default function MatchesPage() {
               type="text"
               value={filterTeam}
               onChange={(e) => { setFilterTeam(e.target.value); setPage(0); }}
-              placeholder="e.g. Brazil"
+              placeholder={t("filter.teamPlaceholder")}
               className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white w-40 focus:outline-none focus:border-blue-400 transition"
             />
             {filterTeam && (
@@ -243,7 +248,7 @@ export default function MatchesPage() {
           <p>{t("section.noMatches")}</p>
         </div>
       ) : (
-        <div key={`${safePage}-${String(sortNewest)}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-page-enter">
+        <div key={`${safePage}-${String(sortNewest)}-${filterDate}-${filterTeam}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-page-enter">
           {paged.map(({ match: m, id }) => {
             const mid = BigInt(id);
             const hasBet = betIds.has(mid);

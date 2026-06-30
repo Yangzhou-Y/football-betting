@@ -288,6 +288,8 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   const matchList: MatchStruct[] = (matches as MatchStruct[]) ?? [];
   const [mgmtPage, setMgmtPage] = useState(0);
   const [mgmtSortNewest, setMgmtSortNewest] = useState(true);
+  const [filterDate, setFilterDate] = useState("");
+  const [filterTeam, setFilterTeam] = useState("");
 
   const { writeContract, data: adminHash, isPending: isAdminPending, error: adminError } = useWriteContract();
   const { isSuccess: adminConfirmed } = useWaitForTxAndRefresh(adminHash);
@@ -295,6 +297,25 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   const validMatches = matchList
     .map((m, i) => ({ match: m, id: i + 1 }))
     .filter(({ match }) => match.startTime > 0n)
+    .filter(({ match: m }) => {
+      // Date filter
+      if (filterDate) {
+        const matchDate = new Date(Number(m.startTime) * 1000);
+        const matchDateStr = matchDate.toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+        const filterDateStr = new Date(filterDate + "T00:00:00+08:00").toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+        if (matchDateStr !== filterDateStr) return false;
+      }
+      // Team name filter (bilingual)
+      if (filterTeam.trim()) {
+        const q = filterTeam.trim().toLowerCase();
+        const homeRaw = decodeTeamName(m.homeTeam ?? "");
+        const awayRaw = decodeTeamName(m.awayTeam ?? "");
+        const homes = [homeRaw.toLowerCase(), translateName(homeRaw, "zh").toLowerCase(), translateName(homeRaw, "en").toLowerCase()];
+        const aways = [awayRaw.toLowerCase(), translateName(awayRaw, "zh").toLowerCase(), translateName(awayRaw, "en").toLowerCase()];
+        if (!homes.some((h) => h.includes(q)) && !aways.some((a) => a.includes(q))) return false;
+      }
+      return true;
+    })
     .sort((a, b) => {
       const cmp = Number(a.match.startTime - b.match.startTime);
       return mgmtSortNewest ? -cmp : cmp;
@@ -335,7 +356,45 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="flex items-center justify-end px-3 py-2 border-b border-slate-100">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 flex-wrap gap-2">
+        {/* Filter bar: date + team search */}
+        <div className="flex gap-2 flex-wrap items-center">
+          <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-500">
+            <span>{t("filter.date")}</span>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => { setFilterDate(e.target.value); setMgmtPage(0); }}
+              className="px-2 py-1 rounded border border-slate-200 text-[10px] sm:text-xs bg-white focus:outline-none focus:border-blue-400 transition"
+            />
+            {filterDate && (
+              <button
+                onClick={() => { setFilterDate(""); setMgmtPage(0); }}
+                className="text-[10px] text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </label>
+          <label className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-500">
+            <span>{t("filter.team")}</span>
+            <input
+              type="text"
+              value={filterTeam}
+              onChange={(e) => { setFilterTeam(e.target.value); setMgmtPage(0); }}
+              placeholder={t("filter.teamPlaceholder")}
+              className="px-2 py-1 rounded border border-slate-200 text-[10px] sm:text-xs bg-white w-28 sm:w-36 focus:outline-none focus:border-blue-400 transition"
+            />
+            {filterTeam && (
+              <button
+                onClick={() => { setFilterTeam(""); setMgmtPage(0); }}
+                className="text-[10px] text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </label>
+        </div>
         <button
           onClick={() => { setMgmtSortNewest((v) => !v); setMgmtPage(0); }}
           className="px-2 py-1 rounded-full text-[10px] sm:text-xs bg-slate-50 text-slate-600 border border-slate-200 hover:border-blue-300 transition"
@@ -343,7 +402,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
           {mgmtSortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
         </button>
       </div>
-      <div key={`mgmt-${safeMgmtPage}-${String(mgmtSortNewest)}`} className="overflow-x-auto animate-page-enter">
+      <div key={`mgmt-${safeMgmtPage}-${String(mgmtSortNewest)}-${filterDate}-${filterTeam}`} className="overflow-x-auto animate-page-enter">
         <table className="w-full text-xs sm:text-sm">
           <thead className="bg-slate-50">
             <tr>

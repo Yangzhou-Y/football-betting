@@ -55,6 +55,8 @@ export default function MyBetsPage() {
   const { data: matches, isLoading: matchesLoading } = useAllMatches();
   const [page, setPage] = useState(0);
   const [sortNewest, setSortNewest] = useState(true);
+  const [filterDate, setFilterDate] = useState("");
+  const [filterTeam, setFilterTeam] = useState("");
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
@@ -125,9 +127,33 @@ export default function MyBetsPage() {
     const cmp = Number(timeA - timeB);
     return sortNewest ? -cmp : cmp;
   });
-  const totalPages = Math.max(1, Math.ceil(order.length / PAGE_SIZE));
+  // Apply date + team filters to the sorted order
+  const filteredOrder = order.filter((i) => {
+    const mid = matchIds[i];
+    const match = matchList.find((_m, j) => j + 1 === Number(mid));
+    if (!match) return false; // deleted match
+    // Date filter
+    if (filterDate) {
+      const matchDate = new Date(Number(match.startTime) * 1000);
+      const matchDateStr = matchDate.toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+      const filterDateStr = new Date(filterDate + "T00:00:00+08:00").toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" });
+      if (matchDateStr !== filterDateStr) return false;
+    }
+    // Team name filter (bilingual)
+    if (filterTeam.trim()) {
+      const q = filterTeam.trim().toLowerCase();
+      const homeRaw = decodeTeamName(match.homeTeam ?? "");
+      const awayRaw = decodeTeamName(match.awayTeam ?? "");
+      const homes = [homeRaw.toLowerCase(), translateName(homeRaw, "zh").toLowerCase(), translateName(homeRaw, "en").toLowerCase()];
+      const aways = [awayRaw.toLowerCase(), translateName(awayRaw, "zh").toLowerCase(), translateName(awayRaw, "en").toLowerCase()];
+      if (!homes.some((h) => h.includes(q)) && !aways.some((a) => a.includes(q))) return false;
+    }
+    return true;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrder.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageOrder = order.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+  const pageOrder = filteredOrder.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="space-y-6" key={address}>
@@ -139,6 +165,45 @@ export default function MyBetsPage() {
         >
           {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
         </button>
+      </div>
+
+      {/* Filter bar: date + team search */}
+      <div className="flex gap-3 flex-wrap items-center">
+        <label className="flex items-center gap-2 text-sm text-slate-500">
+          <span>{t("filter.date")}</span>
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => { setFilterDate(e.target.value); setPage(0); }}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-400 transition"
+          />
+          {filterDate && (
+            <button
+              onClick={() => { setFilterDate(""); setPage(0); }}
+              className="text-xs text-slate-400 hover:text-slate-600"
+            >
+              ✕
+            </button>
+          )}
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-500">
+          <span>{t("filter.team")}</span>
+          <input
+            type="text"
+            value={filterTeam}
+            onChange={(e) => { setFilterTeam(e.target.value); setPage(0); }}
+            placeholder={t("filter.teamPlaceholder")}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white w-40 focus:outline-none focus:border-blue-400 transition"
+          />
+          {filterTeam && (
+            <button
+              onClick={() => { setFilterTeam(""); setPage(0); }}
+              className="text-xs text-slate-400 hover:text-slate-600"
+            >
+              ✕
+            </button>
+          )}
+        </label>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
@@ -181,7 +246,7 @@ export default function MyBetsPage() {
       })()}
 
       {/* Desktop table */}
-      <div key={`d-${safePage}-${String(sortNewest)}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
+      <div key={`d-${safePage}-${String(sortNewest)}-${filterDate}-${filterTeam}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
@@ -246,7 +311,7 @@ export default function MyBetsPage() {
       </div>
 
       {/* Mobile card list */}
-      <div key={`m-${safePage}-${String(sortNewest)}`} className="sm:hidden space-y-3 animate-page-enter">
+      <div key={`m-${safePage}-${String(sortNewest)}-${filterDate}-${filterTeam}`} className="sm:hidden space-y-3 animate-page-enter">
         {pageOrder.map((i) => {
           const mid = matchIds[i];
           const match = matchList.find((_m, j) => j + 1 === Number(mid));

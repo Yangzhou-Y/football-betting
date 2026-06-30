@@ -157,6 +157,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "sort.oldest": "最早优先",
     "filter.date": "日期筛选",
     "filter.team": "搜索球队",
+    "filter.teamPlaceholder": "如 巴西",
 
     // 管理
     "admin.title": "管理后台",
@@ -491,6 +492,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "sort.oldest": "Oldest first",
     "filter.date": "Filter by date",
     "filter.team": "Search team",
+    "filter.teamPlaceholder": "e.g. Brazil",
 
     // Admin
     "admin.title": "Admin Panel",
