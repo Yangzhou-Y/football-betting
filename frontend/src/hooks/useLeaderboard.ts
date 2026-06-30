@@ -108,12 +108,12 @@ export function useLeaderboard() {
       if (bets.length > 200_000 || rewards.length > 200_000) {
         localStorage.removeItem(CACHE_KEY_BETS);
         localStorage.removeItem(CACHE_KEY_REWARDS);
+        clearEventScanCache(contractAddress ?? "", "leaderboard");
       } else {
-        // ✅ 使用 stringifyWithBigInt 正确处理 bigint 字段
         localStorage.setItem(CACHE_KEY_BETS, stringifyWithBigInt(bets));
         localStorage.setItem(CACHE_KEY_REWARDS, stringifyWithBigInt(rewards));
+        saveScannedBlock(contractAddress ?? "", "leaderboard", lastBlock);
       }
-      saveScannedBlock(contractAddress ?? "", "leaderboard", lastBlock);
     } catch (err) {
       // localStorage 满或被禁用，静默失败
       console.debug("Cache save failed:", err);

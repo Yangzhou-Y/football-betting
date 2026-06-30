@@ -63,11 +63,11 @@ export function useParticipantCounts() {
       // 大小管理：超过 200k 条则清空
       if (events.length > 200_000) {
         localStorage.removeItem(CACHE_KEY);
+        clearEventScanCache(contractAddress ?? "", "participantCounts");
       } else {
-        // ✅ 使用 stringifyWithBigInt 正确处理 bigint 字段
         localStorage.setItem(CACHE_KEY, stringifyWithBigInt(events));
+        saveScannedBlock(contractAddress ?? "", "participantCounts", lastBlock);
       }
-      saveScannedBlock(contractAddress ?? "", "participantCounts", lastBlock);
     } catch (err) {
       // localStorage 满或被禁用，静默失败
       console.debug("Cache save failed:", err);
