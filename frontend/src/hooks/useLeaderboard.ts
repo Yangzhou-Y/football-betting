@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useBlockNumber } from "wagmi";
 import { getContractEvents } from "viem/actions";
 import { useDeploymentConfig } from "@/lib/config";
 import { useAllMatches } from "@/hooks/useMatches";
+import { getLastScannedBlock, saveScannedBlock, clearEventScanCache } from "@/lib/eventScanCache";
 import type { MatchStruct } from "@/lib/types";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 import { MatchStatus } from "@/lib/constants";
@@ -13,6 +14,8 @@ import { shortAddress } from "@/lib/utils";
 
 const TOP_N = 100;
 const BLOCK_CHUNK = 100_000n;
+const CACHE_KEY_BETS = "leaderboard_bets";
+const CACHE_KEY_REWARDS = "leaderboard_rewards";
 
 export interface LeaderboardEntry {
   address: string;
@@ -83,14 +86,78 @@ export function useLeaderboard() {
   const [scanProgress, setScanProgress] = useState<ScanProgress>({ current: 0, total: 0 });
   const progressRef = useRef<ScanProgress>({ current: 0, total: 0 });
 
+  // 从 localStorage 恢复缓存的历史事件
+  const getCachedEvents = useCallback(() => {
+    try {
+      const cachedBets = localStorage.getItem(CACHE_KEY_BETS)
+        ? (JSON.parse(localStorage.getItem(CACHE_KEY_BETS)!) as RawBetEvent[])
+        : [];
+      const cachedRewards = localStorage.getItem(CACHE_KEY_REWARDS)
+        ? (JSON.parse(localStorage.getItem(CACHE_KEY_REWARDS)!) as RawRewardEvent[])
+        : [];
+      return { cachedBets, cachedRewards };
+    } catch {
+      return { cachedBets: [], cachedRewards: [] };
+    }
+  }, []);
+
+  // 保存事件到 localStorage
+  const saveCachedEvents = useCallback((bets: RawBetEvent[], rewards: RawRewardEvent[], lastBlock: number) => {
+    try {
+      // 简单的大小管理：若超过 200k 条事件则清空（避免 localStorage 爆满）
+      if (bets.length > 200_000 || rewards.length > 200_000) {
+        localStorage.removeItem(CACHE_KEY_BETS);
+        localStorage.removeItem(CACHE_KEY_REWARDS);
+      } else {
+        localStorage.setItem(CACHE_KEY_BETS, JSON.stringify(bets));
+        localStorage.setItem(CACHE_KEY_REWARDS, JSON.stringify(rewards));
+      }
+      saveScannedBlock(contractAddress ?? "", "leaderboard", lastBlock);
+    } catch {
+      // localStorage 满或被禁用，静默失败
+    }
+  }, [contractAddress]);
+
   const { data: leaderboard, isLoading, isError, error } = useQuery({
     queryKey: ["leaderboard", contractAddress, fromBlock?.toString()],
     queryFn: async () => {
       if (!client || !contractAddress || !currentBlock || !fromBlock) return [];
 
-      // 按块区间分片拉取，避免单次 eth_getLogs 超限
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // ① 恢复历史缓存数据
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const { cachedBets, cachedRewards } = getCachedEvents();
+      const lastScannedBlock = getLastScannedBlock(contractAddress, "leaderboard");
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // ② 计算增量扫描范围
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      let startBlock = fromBlock;
+      const allBets: RawBetEvent[] = [...cachedBets];
+      const allRewards: RawRewardEvent[] = [...cachedRewards];
+
+      // 若有缓存，检查合法性后从缓存块号之后开始扫描
+      if (lastScannedBlock !== null) {
+        if (lastScannedBlock > Number(currentBlock)) {
+          // 链回滚了，清空缓存
+          clearEventScanCache(contractAddress, "leaderboard");
+          allBets.length = 0;
+          allRewards.length = 0;
+        } else if (lastScannedBlock >= Number(fromBlock)) {
+          startBlock = BigInt(lastScannedBlock + 1);
+        }
+      }
+
+      // 若 startBlock >= currentBlock，说明已扫到最新，直接返回
+      if (startBlock >= currentBlock) {
+        return aggregateLeaderboard(allBets, allRewards).slice(0, TOP_N);
+      }
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // ③ 增量扫描新块
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const chunks: { from: bigint; to: bigint }[] = [];
-      for (let from = fromBlock; from < currentBlock; from += BLOCK_CHUNK) {
+      for (let from = startBlock; from < currentBlock; from += BLOCK_CHUNK) {
         const to = from + BLOCK_CHUNK - 1n > currentBlock ? currentBlock : from + BLOCK_CHUNK - 1n;
         chunks.push({ from, to });
       }
@@ -98,10 +165,7 @@ export function useLeaderboard() {
       setScanProgress({ current: 0, total: chunks.length });
       progressRef.current = { current: 0, total: chunks.length };
 
-      const allBets: RawBetEvent[] = [];
-      const allRewards: RawRewardEvent[] = [];
-
-      // 逐片拉取（顺序执行避免 RPC 限流）
+      // 逐片拉取新块的事件
       for (let i = 0; i < chunks.length; i++) {
         const { from, to } = chunks[i];
         const [betLogs, rewardLogs] = await Promise.all([
@@ -134,6 +198,11 @@ export function useLeaderboard() {
         setScanProgress(next);
         progressRef.current = next;
       }
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // ④ 保存新数据到缓存
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      saveCachedEvents(allBets, allRewards, Number(currentBlock));
 
       return aggregateLeaderboard(allBets, allRewards).slice(0, TOP_N);
     },
