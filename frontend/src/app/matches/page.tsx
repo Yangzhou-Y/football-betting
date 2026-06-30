@@ -38,6 +38,7 @@ import { MatchStatus } from "@/lib/constants";
 import { useDeploymentConfig } from "@/lib/config";
 import type { MatchStruct, UserAllBetsTuple } from "@/lib/types";
 import { useT } from "@/lib/i18n";
+import { decodeTeamName } from "@/lib/utils";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
 /** 每页显示的赛事卡片数 */
@@ -141,10 +142,11 @@ export default function MatchesPage() {
       if (matchDateStr !== filterDateStr) return false;
     }
     // Team name filter (case-insensitive, searches homeTeam and awayTeam)
+    // homeTeam/awayTeam are stored as bytes32 hex, must decode before comparison
     if (filterTeam.trim()) {
       const q = filterTeam.trim().toLowerCase();
-      const home = (m.homeTeam ?? "").toLowerCase();
-      const away = (m.awayTeam ?? "").toLowerCase();
+      const home = decodeTeamName(m.homeTeam ?? "").toLowerCase();
+      const away = decodeTeamName(m.awayTeam ?? "").toLowerCase();
       if (!home.includes(q) && !away.includes(q)) return false;
     }
     return true;
