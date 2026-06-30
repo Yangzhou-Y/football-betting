@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useBlockNumber } from "wagmi";
 import { getContractEvents } from "viem/actions";
 import { useDeploymentConfig } from "@/lib/config";
-import { getLastScannedBlock, saveScannedBlock, clearEventScanCache } from "@/lib/eventScanCache";
+import { getLastScannedBlock, saveScannedBlock, clearEventScanCache, stringifyWithBigInt, parseWithBigInt } from "@/lib/eventScanCache";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 
 const BLOCK_CHUNK = 100_000n;
@@ -46,10 +46,10 @@ export function useParticipantCounts() {
   const getCachedEvents = useCallback(() => {
     try {
       const cached = localStorage.getItem(CACHE_KEY)
-        ? (JSON.parse(localStorage.getItem(CACHE_KEY)!) as Array<{
+        ? parseWithBigInt<Array<{
             matchId: bigint;
             user: string;
-          }>)
+          }>>(localStorage.getItem(CACHE_KEY)!)
         : [];
       return cached;
     } catch {
@@ -64,11 +64,13 @@ export function useParticipantCounts() {
       if (events.length > 200_000) {
         localStorage.removeItem(CACHE_KEY);
       } else {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(events));
+        // ✅ 使用 stringifyWithBigInt 正确处理 bigint 字段
+        localStorage.setItem(CACHE_KEY, stringifyWithBigInt(events));
       }
       saveScannedBlock(contractAddress ?? "", "participantCounts", lastBlock);
-    } catch {
+    } catch (err) {
       // localStorage 满或被禁用，静默失败
+      console.debug("Cache save failed:", err);
     }
   }, [contractAddress]);
 

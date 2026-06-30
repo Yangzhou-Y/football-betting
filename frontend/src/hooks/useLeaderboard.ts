@@ -6,7 +6,7 @@ import { usePublicClient, useBlockNumber } from "wagmi";
 import { getContractEvents } from "viem/actions";
 import { useDeploymentConfig } from "@/lib/config";
 import { useAllMatches } from "@/hooks/useMatches";
-import { getLastScannedBlock, saveScannedBlock, clearEventScanCache } from "@/lib/eventScanCache";
+import { getLastScannedBlock, saveScannedBlock, clearEventScanCache, stringifyWithBigInt, parseWithBigInt } from "@/lib/eventScanCache";
 import type { MatchStruct } from "@/lib/types";
 import FootballBettingABI from "@/lib/abi/FootballBetting.json";
 import { MatchStatus } from "@/lib/constants";
@@ -90,10 +90,10 @@ export function useLeaderboard() {
   const getCachedEvents = useCallback(() => {
     try {
       const cachedBets = localStorage.getItem(CACHE_KEY_BETS)
-        ? (JSON.parse(localStorage.getItem(CACHE_KEY_BETS)!) as RawBetEvent[])
+        ? parseWithBigInt<RawBetEvent[]>(localStorage.getItem(CACHE_KEY_BETS)!)
         : [];
       const cachedRewards = localStorage.getItem(CACHE_KEY_REWARDS)
-        ? (JSON.parse(localStorage.getItem(CACHE_KEY_REWARDS)!) as RawRewardEvent[])
+        ? parseWithBigInt<RawRewardEvent[]>(localStorage.getItem(CACHE_KEY_REWARDS)!)
         : [];
       return { cachedBets, cachedRewards };
     } catch {
@@ -109,12 +109,14 @@ export function useLeaderboard() {
         localStorage.removeItem(CACHE_KEY_BETS);
         localStorage.removeItem(CACHE_KEY_REWARDS);
       } else {
-        localStorage.setItem(CACHE_KEY_BETS, JSON.stringify(bets));
-        localStorage.setItem(CACHE_KEY_REWARDS, JSON.stringify(rewards));
+        // ✅ 使用 stringifyWithBigInt 正确处理 bigint 字段
+        localStorage.setItem(CACHE_KEY_BETS, stringifyWithBigInt(bets));
+        localStorage.setItem(CACHE_KEY_REWARDS, stringifyWithBigInt(rewards));
       }
       saveScannedBlock(contractAddress ?? "", "leaderboard", lastBlock);
-    } catch {
+    } catch (err) {
       // localStorage 满或被禁用，静默失败
+      console.debug("Cache save failed:", err);
     }
   }, [contractAddress]);
 

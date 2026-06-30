@@ -113,3 +113,34 @@ export function debugGetAllCheckpoints(): EventScanCheckpoint[] {
     return [];
   }
 }
+
+// ============================================================================
+// BigInt 序列化/反序列化工具（因为 JSON.stringify 不支持 bigint）
+// ============================================================================
+
+/**
+ * 【问题】JSON.stringify 无法序列化 bigint：
+ *   JSON.stringify({ amount: 1000n })  // ❌ TypeError: Do not know how to serialize a BigInt
+ *
+ * 【解决方案】使用 replacer/reviver 转换 bigint ↔ string
+ *   序列化：   bigint → { __bigint: "1000" }
+ *   反序列化： { __bigint: "1000" } → bigint
+ */
+
+export function stringifyWithBigInt(obj: any): string {
+  return JSON.stringify(obj, (_, value) => {
+    if (typeof value === "bigint") {
+      return { __bigint: value.toString() };
+    }
+    return value;
+  });
+}
+
+export function parseWithBigInt<T>(json: string): T {
+  return JSON.parse(json, (_, value) => {
+    if (value !== null && typeof value === "object" && "__bigint" in value) {
+      return BigInt(value.__bigint as string);
+    }
+    return value;
+  }) as T;
+}
