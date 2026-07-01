@@ -59,56 +59,58 @@ export function Navbar() {
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-2 sm:px-3 h-14 flex items-center justify-between">
-        {/* Left */}
-        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-          <Link href="/" className="text-sm sm:text-lg font-bold text-blue-600 whitespace-nowrap shrink-0">
-            {t("app.title")}
-          </Link>
-          <div className="hidden sm:flex items-center gap-0.5">
-            {navItems.map((link) => (
-              <Link key={link.href} href={link.href} className={desktopLinkCls(pathname === link.href)}>
-                <span className="mr-0.5">{link.icon}</span>{link.label}
-              </Link>
-            ))}
-            {mounted && isConnected && !isAdminLoading && isAdmin && (
-              <Link href="/admin" className={desktopLinkCls(pathname === "/admin")}>
-                <span className="mr-0.5">⚙</span>{t("nav.admin")}
-              </Link>
+    <>
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-2 sm:px-3 h-14 flex items-center justify-between">
+          {/* Left */}
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+            <Link href="/" className="text-sm sm:text-lg font-bold text-blue-600 whitespace-nowrap shrink-0">
+              {t("app.title")}
+            </Link>
+            <div className="hidden sm:flex items-center gap-0.5">
+              {navItems.map((link) => (
+                <Link key={link.href} href={link.href} className={desktopLinkCls(pathname === link.href)}>
+                  <span className="mr-0.5">{link.icon}</span>{link.label}
+                </Link>
+              ))}
+              {mounted && isConnected && !isAdminLoading && isAdmin && (
+                <Link href="/admin" className={desktopLinkCls(pathname === "/admin")}>
+                  <span className="mr-0.5">⚙</span>{t("nav.admin")}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+            {mounted && isConnected && usdtBalance !== undefined && (
+              <span className="hidden sm:inline text-xs text-green-800 bg-green-100 px-2 py-0.5 rounded-lg border border-green-300 font-semibold whitespace-nowrap">
+                {formatUSDT(usdtBalance as bigint, 4)} USDT
+              </span>
             )}
+            {mounted && isConnected && !isAdminLoading && (
+              <span className={`hidden sm:inline text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                isAdmin ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
+              }`}>
+                {isAdmin ? t("role.admin") : t("role.user")}
+              </span>
+            )}
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as "zh" | "en")}
+              className="px-1 py-0.5 rounded text-xs border border-slate-200 text-slate-500 bg-white cursor-pointer"
+            >
+              <option value="zh">中</option>
+              <option value="en">EN</option>
+            </select>
+            <div className="max-sm:[&_[data-rk]]:!max-w-[120px]">
+              <ConnectButton showBalance={false} accountStatus="address" chainStatus="none" />
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Right */}
-        <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
-          {mounted && isConnected && usdtBalance !== undefined && (
-            <span className="hidden sm:inline text-xs text-green-800 bg-green-100 px-2 py-0.5 rounded-lg border border-green-300 font-semibold whitespace-nowrap">
-              {formatUSDT(usdtBalance as bigint, 4)} USDT
-            </span>
-          )}
-          {mounted && isConnected && !isAdminLoading && (
-            <span className={`hidden sm:inline text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
-              isAdmin ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
-            }`}>
-              {isAdmin ? t("role.admin") : t("role.user")}
-            </span>
-          )}
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value as "zh" | "en")}
-            className="px-1 py-0.5 rounded text-xs border border-slate-200 text-slate-500 bg-white cursor-pointer"
-          >
-            <option value="zh">中</option>
-            <option value="en">EN</option>
-          </select>
-          <div className="max-sm:[&_[data-rk]]:!max-w-[120px]">
-            <ConnectButton showBalance={false} accountStatus="address" chainStatus="none" />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — must be outside <nav> so fixed positioning works correctly */}
       <div className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-t border-slate-200 pb-[env(safe-area-inset-bottom,0px)]">
         <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
           {navItems.map((link) => {
@@ -143,6 +145,6 @@ export function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </>
   );
 }
