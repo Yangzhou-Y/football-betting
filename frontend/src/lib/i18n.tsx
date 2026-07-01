@@ -249,6 +249,22 @@ const dict: Record<Lang, Record<string, string>> = {
     "stats.totalPool": "累计奖池",
     "stats.activePool": "竞猜中奖池",
     "stats.openMatches": "投注中",
+
+    // 新用户引导
+    "onboarding.title": "链上世界杯竞猜",
+    "onboarding.subtitle": "用 USDT 为你的预测下注，猜对赢走奖池。全部在链上运行，透明可验证。",
+    "onboarding.step": "步骤",
+    "onboarding.step1": "连接钱包",
+    "onboarding.step1Desc": "支持 MetaMask 等主流钱包",
+    "onboarding.step2": "投注 USDT",
+    "onboarding.step2Desc": "选择赛事和结果，输入金额",
+    "onboarding.step3": "猜对领奖",
+    "onboarding.step3Desc": "赛事结算后中奖即时到账",
+    "onboarding.feature1": "链上透明",
+    "onboarding.feature2": "即时领取",
+    "onboarding.feature3": "零门槛参与",
+    "onboarding.cta": "连接钱包开始竞猜",
+    "onboarding.ctaHint": "无需 KYC，连接即可使用",
     "stats.settledCount": "已开奖",
     "stats.matchBreakdown": "共 {total} 场 · 投注中 {open} 场 · 已封盘 {closed} 场 · 已开奖 {settled} 场",
 
@@ -590,6 +606,22 @@ const dict: Record<Lang, Record<string, string>> = {
     "stats.openMatches": "Open",
     "stats.settledCount": "Settled",
     "stats.matchBreakdown": "{total} total · {open} open · {closed} closed · {settled} settled",
+
+    // Onboarding
+    "onboarding.title": "On-chain World Cup Betting",
+    "onboarding.subtitle": "Bet USDT on your predictions. Win the pool when you're right. All on-chain, transparent and verifiable.",
+    "onboarding.step": "Step",
+    "onboarding.step1": "Connect Wallet",
+    "onboarding.step1Desc": "Supports MetaMask and popular wallets",
+    "onboarding.step2": "Place Bet",
+    "onboarding.step2Desc": "Pick a match, choose result, enter amount",
+    "onboarding.step3": "Claim Reward",
+    "onboarding.step3Desc": "Rewards arrive instantly after settlement",
+    "onboarding.feature1": "On-chain",
+    "onboarding.feature2": "Instant Claim",
+    "onboarding.feature3": "No Barrier",
+    "onboarding.cta": "Connect Wallet to Start",
+    "onboarding.ctaHint": "No KYC required, just connect and play",
 
     // Sections
     "section.hot": "🔥 Hot Matches",

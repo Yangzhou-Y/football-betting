@@ -25,6 +25,7 @@ import { useUserAllBets } from "@/hooks/useUserBets";
 import { useParticipantCounts } from "@/hooks/useParticipantCounts";
 import { useDeploymentConfig } from "@/lib/config";
 import { MatchCard } from "@/components/match/MatchCard";
+import { WelcomeBanner } from "@/components/home/WelcomeBanner";
 import { MatchCardGridSkeleton } from "@/components/shared/Skeleton";
 import { MatchStatus } from "@/lib/constants";
 import { formatUSDT } from "@/lib/utils";
@@ -120,6 +121,9 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8 relative" key={address}>
+      {!isConnected && <WelcomeBanner />}
+
+      {(isConnected || validMatches.length > 0) && (<>
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <StatCard label={t("stats.totalMatches")} value={String(validMatches.length)}>
           <p className="text-xs text-slate-400 mt-1">
@@ -163,15 +167,16 @@ export default function HomePage() {
         </section>
       )}
 
-      {validMatches.length === 0 && (
+      {isConnected && validMatches.length === 0 && (
         <div className="text-center py-16 text-slate-400">
           <p className="text-lg">{t("section.noMatches")}</p>
           <p className="text-sm mt-1">{t("section.noMatchesHint")}</p>
         </div>
       )}
+      </>)}
     </div>
   );
-}
+  }
 
 function StatCard({ label, value, color = "text-slate-800", children }: { label: string; value: string; color?: string; children?: React.ReactNode }) {
   return (
