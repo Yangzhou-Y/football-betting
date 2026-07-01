@@ -2,12 +2,26 @@
 export function WorldCupBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-      {/* 绿茵底色 — 上白下绿渐变 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-green-50/70 to-green-200" />
+      {/* 球场边线白线 — 低调勾勒出足球场轮廓 */}
+      <div className="absolute inset-0 border-[40px] sm:border-[60px] border-white/10 rounded-none" />
+      {/* 中线 */}
+      <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/10" />
+      {/* 中圈 */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] rounded-full border-2 border-white/10" />
+      {/* 中圈开球点 */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[8px] h-[8px] rounded-full bg-white/10" />
+      {/* 左上角球弧 */}
+      <div className="absolute top-[38px] sm:top-[58px] left-[38px] sm:left-[58px] w-[24px] h-[24px] rounded-br-full border-2 border-b-0 border-l-0 border-white/10" />
+      {/* 右上角球弧 */}
+      <div className="absolute top-[38px] sm:top-[58px] right-[38px] sm:right-[58px] w-[24px] h-[24px] rounded-bl-full border-2 border-b-0 border-r-0 border-white/10" />
+      {/* 左下角球弧 */}
+      <div className="absolute bottom-[38px] sm:bottom-[58px] left-[38px] sm:left-[58px] w-[24px] h-[24px] rounded-tr-full border-2 border-t-0 border-l-0 border-white/10" />
+      {/* 右下角球弧 */}
+      <div className="absolute bottom-[38px] sm:bottom-[58px] right-[38px] sm:right-[58px] w-[24px] h-[24px] rounded-tl-full border-2 border-t-0 border-r-0 border-white/10" />
 
       {/* 球门 */}
-      <Goal x="3%" y="25%" />
-      <Goal x="91%" y="50%" />
+      <Goal x="3%" y="28%" />
+      <Goal x="91%" y="52%" />
 
       {/* 奖杯 */}
       <Trophy x="48%" y="5%" size={44} delay={0} />

@@ -13,9 +13,69 @@
 }
 
 body {
-  background: linear-gradient(180deg, #f0f7f0 0%, #f8fafc 50%, #f4f8f0 100%) fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
+
+  /* ==========================================================================
+   * 足球场草坪主题背景（纯 CSS，零带宽图片）
+   *
+   * 层次结构（从底到顶）：
+   *   ① 深绿底色            — 模拟真实草皮基色
+   *   ② 草坪条纹（水平）     — 经典割草机条纹，间隔 60px
+   *   ③ 草坪纹理（斜向交织） — 模拟草叶方向变化的视觉颗粒感
+   *   ④ 从中心向外径向渐变    — 让视觉重心聚焦在页面中央（卡片区域）
+   *   ⑤ 顶部高亮             — 模拟球场灯光从上方打下来的效果
+   *   ⑥ 边线微暗             — 左右两侧轻微的暗角，增加纵深感
+   *
+   * 性能：全部使用 CSS gradient，无图片加载，首屏 0 额外请求。
+   * ==========================================================================
+   */
+  background:
+    /* ⑤ 顶部灯光 — 上半部偏亮，模拟聚光灯效果 */
+    linear-gradient(175deg,
+      rgba(255,255,255,0.5) 0%,
+      rgba(255,255,255,0.15) 30%,
+      transparent 55%
+    ),
+    /* ④ 径向聚焦 — 中心区域更亮，边缘略暗 */
+    radial-gradient(ellipse at 50% 30%,
+      rgba(255,255,255,0.35) 0%,
+      transparent 65%,
+      rgba(0,0,0,0.08) 100%
+    ),
+    /* ③ 斜向草纹 — 45° 和 -35° 条纹交织，模拟草叶方向变化 */
+    repeating-linear-gradient(
+      47deg,
+      transparent,
+      transparent 2px,
+      rgba(34, 197, 94, 0.04) 2px,
+      rgba(34, 197, 94, 0.04) 3px
+    ),
+    repeating-linear-gradient(
+      -33deg,
+      transparent,
+      transparent 2px,
+      rgba(34, 197, 94, 0.045) 2px,
+      rgba(34, 197, 94, 0.045) 3px
+    ),
+    /* ② 草坪条纹 — 水平浅深交替，模拟割草机纹路 */
+    repeating-linear-gradient(
+      0deg,
+      rgba(34, 197, 94, 0.06) 0px,
+      rgba(34, 197, 94, 0.06) 30px,
+      rgba(34, 197, 94, 0.0) 30px,
+      rgba(34, 197, 94, 0.0) 60px
+    ),
+    /* ① 草坪底色 — 从球场绿渐变到边线外区域 */
+    linear-gradient(
+      180deg,
+      #c8e6c0 0%,
+      #d4ecd0 15%,
+      #dcefd8 40%,
+      #e8f3e4 70%,
+      #f0f4ef 100%
+    );
+  background-attachment: fixed;
 }
 
 /* RainbowKit 按钮适配 */
