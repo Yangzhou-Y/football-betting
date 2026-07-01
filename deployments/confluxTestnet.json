@@ -1,12 +1,12 @@
 {
   "contractName": "FootballBetting",
-  "address": "0x774193DC737e34aFF09A4E0716D856f77a46dfD5",
+  "address": "0xf060BAA71dC683c479A275497748DB887aCb4D57",
   "deployer": "0x89A147C4Abb7b428d34f4657Bc0acD67a6Cd998D",
   "network": "confluxTestnet",
   "chainId": 71,
   "platformFeeRate": 200,
   "usdtAddress": "0x7d682e65efc5c13bf4e394b8f376c48e6bae0355",
-  "txHash": "0x61aec6d26fab12711a4b327ef7da09c06b17e7328e70f231bff36c8aa9079a09",
-  "blockNumber": 255749050,
-  "deployedAt": "2026-07-01T10:04:36.283Z"
+  "txHash": "0xf049dc52ac18337497522e85a7a93045f5d31021ebd5be2be7591dd240579e33",
+  "blockNumber": 255749755,
+  "deployedAt": "2026-07-01T10:15:48.119Z"
 }
