@@ -16,6 +16,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
   overflow-x: hidden;
+  max-width: 100vw;
 
   /* ==========================================================================
    * 足球场草坪主题背景（纯 CSS，零带宽图片）

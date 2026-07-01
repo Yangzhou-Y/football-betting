@@ -1,7 +1,7 @@
 /** 世界杯主题背景装饰 — 不影响任何交互 */
 export function WorldCupBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div className="fixed inset-0 pointer-events-none -z-10" style={{ overflow: "hidden" }}>
       {/* 球场边线白线 — 低调勾勒出足球场轮廓 */}
       <div className="absolute inset-0 border-[40px] sm:border-[60px] border-white/10 rounded-none" />
       {/* 中线 */}

@@ -42,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased overflow-x-hidden`}>
       <body className="min-h-full flex flex-col text-slate-900">
         <LayoutClient>{children}</LayoutClient>
       </body>
