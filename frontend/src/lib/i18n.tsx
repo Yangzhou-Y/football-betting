@@ -246,7 +246,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "stats.activePool": "竞猜中奖池",
     "stats.openMatches": "投注中",
     "stats.settledCount": "已开奖",
-    "stats.matchBreakdown": "共 {total} 场 · 竞猜中 {open} 场 · 已开奖 {settled} 场",
+    "stats.matchBreakdown": "共 {total} 场 · 投注中 {open} 场 · 已封盘 {closed} 场 · 已开奖 {settled} 场",
 
     // 分区
     "section.hot": "🔥 热门赛事",
@@ -581,7 +581,7 @@ const dict: Record<Lang, Record<string, string>> = {
     "stats.activePool": "Active Pool",
     "stats.openMatches": "Open",
     "stats.settledCount": "Settled",
-    "stats.matchBreakdown": "{total} total · {open} open · {settled} settled",
+    "stats.matchBreakdown": "{total} total · {open} open · {closed} closed · {settled} settled",
 
     // Sections
     "section.hot": "🔥 Hot Matches",

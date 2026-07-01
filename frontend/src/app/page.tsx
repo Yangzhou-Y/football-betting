@@ -111,6 +111,7 @@ export default function HomePage() {
 
   const totalPool = validMatches.reduce((sum, { match }) => sum + match.totalPool, 0n);
   const openMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Open);
+  const closedMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Closed);
   const settledMatches = validMatches.filter(({ match }) => match.status === MatchStatus.Settled);
   const activePool = openMatches.reduce((sum, { match }) => sum + match.totalPool, 0n);
   const upcomingMatches = validMatches
@@ -125,6 +126,7 @@ export default function HomePage() {
             {t("stats.matchBreakdown")
               .replace("{total}", String(validMatches.length))
               .replace("{open}", String(openMatches.length))
+              .replace("{closed}", String(closedMatches.length))
               .replace("{settled}", String(settledMatches.length))}
           </p>
         </StatCard>
