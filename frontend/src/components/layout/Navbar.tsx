@@ -69,12 +69,12 @@ export function Navbar() {
           <div className="hidden sm:flex items-center gap-0.5">
             {navItems.map((link) => (
               <Link key={link.href} href={link.href} className={desktopLinkCls(pathname === link.href)}>
-                {link.label}
+                <span className="mr-0.5">{link.icon}</span>{link.label}
               </Link>
             ))}
             {mounted && isConnected && !isAdminLoading && isAdmin && (
               <Link href="/admin" className={desktopLinkCls(pathname === "/admin")}>
-                {t("nav.admin")}
+                <span className="mr-0.5">⚙</span>{t("nav.admin")}
               </Link>
             )}
           </div>
