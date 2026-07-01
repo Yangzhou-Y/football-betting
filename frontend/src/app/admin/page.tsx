@@ -364,6 +364,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
             <span>{t("filter.date")}</span>
             <input
               type="date"
+              required
               value={filterDate}
               onChange={(e) => { setFilterDate(e.target.value); setMgmtPage(0); }}
               className="px-2 py-1 rounded border border-slate-200 text-[10px] sm:text-xs bg-white focus:outline-none focus:border-blue-400 transition"

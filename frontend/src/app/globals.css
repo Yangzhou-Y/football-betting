@@ -35,6 +35,15 @@ body {
   }
 }
 
+/* 日期输入框空值时隐藏格式提示（yyyy/mm/dd），选中日期正常显示 */
+input[type="date"]::-webkit-datetime-edit {
+  color: transparent;
+}
+input[type="date"]:focus::-webkit-datetime-edit,
+input[type="date"]:valid::-webkit-datetime-edit {
+  color: inherit;
+}
+
 /* 数字输入框去掉箭头 */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

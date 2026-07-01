@@ -174,6 +174,7 @@ export default function MyBetsPage() {
           <span>{t("filter.date")}</span>
           <input
             type="date"
+            required
             value={filterDate}
             onChange={(e) => { setFilterDate(e.target.value); setPage(0); }}
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:border-blue-400 transition"
