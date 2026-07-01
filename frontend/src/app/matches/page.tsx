@@ -274,7 +274,7 @@ export default function MatchesPage() {
           <p>{t("section.noMatches")}</p>
         </div>
       ) : (
-        <div key={`${safePage}-${String(sortNewest)}-${filterDate}-${filterTeam}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-page-enter">
+        <div key={`${safePage}-${String(sortNewest)}-${sortMode}-${filter}-${filterDate}-${filterTeam}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-page-enter">
           {paged.map(({ match: m, id }) => {
             const mid = BigInt(id);
             const hasBet = betIds.has(mid);
