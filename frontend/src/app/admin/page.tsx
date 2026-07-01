@@ -372,7 +372,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
             {filterDate && (
               <button
                 onClick={() => { setFilterDate(""); setMgmtPage(0); }}
-                className="text-[10px] text-slate-400 hover:text-slate-600"
+                className="ml-0.5 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs sm:text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
               >
                 ✕
               </button>
@@ -389,7 +389,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
             {filterTeam && (
               <button
                 onClick={() => { setFilterTeam(""); setMgmtPage(0); }}
-                className="text-[10px] text-slate-400 hover:text-slate-600"
+                className="ml-0.5 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs sm:text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
               >
                 ✕
               </button>

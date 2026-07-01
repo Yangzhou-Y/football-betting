@@ -182,7 +182,7 @@ export default function MyBetsPage() {
           {filterDate && (
             <button
               onClick={() => { setFilterDate(""); setPage(0); }}
-              className="text-xs text-slate-400 hover:text-slate-600"
+              className="ml-1 w-7 h-7 flex items-center justify-center rounded-full text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
             >
               ✕
             </button>
@@ -199,7 +199,7 @@ export default function MyBetsPage() {
           {filterTeam && (
             <button
               onClick={() => { setFilterTeam(""); setPage(0); }}
-              className="text-xs text-slate-400 hover:text-slate-600"
+              className="ml-1 w-7 h-7 flex items-center justify-center rounded-full text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
             >
               ✕
             </button>
