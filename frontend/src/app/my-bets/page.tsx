@@ -456,7 +456,7 @@ function ClaimButton({ matchId }: { matchId: number }) {
     <button
       onClick={handleClaim}
       disabled={isClaiming || isConfirming}
-      className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition"
+      className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:pointer-events-none transition"
     >
       {isClaiming ? t("claim.claiming") : isConfirming ? t("bet.confirming") : `${t("claim.reward")} ${formatUSDT(reward)}`}
     </button>
