@@ -35,8 +35,15 @@
 ```
 football-betting/
 ├── contracts/
-│   ├── FootballBetting.sol      # 核心合约（USDT 支付 / 多管理员 / Gas 优化）
-│   └── MockERC20.sol            # 本地测试用 ERC-20（18 位小数）
+│   ├── IERC20.sol                  # ERC-20 最小接口
+│   ├── FootballBettingTypes.sol    # 枚举、结构体、事件、自定义错误
+│   ├── FootballBettingBase.sol     # 状态变量、构造器、修饰器、内部辅助函数
+│   ├── FootballBettingAdmin.sol    # 赛事生命周期管理 + 管理员功能
+│   ├── FootballBettingBet.sol      # 用户投注 + 取消投注
+│   ├── FootballBettingSettle.sol   # 奖励领取 + 手续费提取
+│   ├── FootballBettingQuery.sol    # 查询函数
+│   ├── FootballBetting.sol         # 聚合合约（多重继承以上全部模块）
+│   └── MockERC20.sol               # 本地测试用 ERC-20（18 位小数）
 ├── scripts/
 │   ├── shared/
 │   │   └── usdt.ts                # 小数位数统一配置（U()/FU()/USDT_DECIMALS）
@@ -69,7 +76,7 @@ football-betting/
 
 | 项目 | 地址 |
 |---|---|
-| FootballBetting | `0x8A60409F40fEDFE7D07D61866757899F2fE35B63` |
+| FootballBetting | `0xf060BAA71dC683c479A275497748DB887aCb4D57` |
 | Faucet USDT | `0x7d682e65efc5c13bf4e394b8f376c48e6bae0355` |
 | Chain ID | 71 |
 | RPC | `https://evmtestnet.confluxrpc.com` |
