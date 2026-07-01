@@ -47,3 +47,6 @@ Thumbs.db
 # Claude Code 本地数据
 # ================================
 .claude/
+BUGFIX_BIGINT_SERIALIZATION.md
+RPC_PERFORMANCE_OPTIMIZATION.md
+frontend/public/2026-06-30-dev-log.md
