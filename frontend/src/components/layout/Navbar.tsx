@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -15,13 +13,12 @@ import { useLang } from "@/lib/i18n";
 
 /**
  * ============================================================================
- * Navbar — 顶部导航栏（桌面端横排导航 + 移动端抽屉菜单）
+ * Navbar — 顶部导航栏（桌面端横排导航 + 移动端底部 Tab Bar）
  * ============================================================================
  *
  * 【响应式策略】
  *   桌面端（sm+）：横排导航链接 + USDT 余额 + 角色标签 + 语言切换 + ConnectButton
- *   移动端（<sm）：汉堡菜单打开右侧抽屉（Portal 渲染到 body，避免 Safari
- *    backdrop-filter 裁剪问题），抽屉内含完整导航 + 余额 + 角色
+ *   移动端（<sm）：底部固定 Tab Bar，一键直达各页面
  *
  * 【权限感知】
  *   非管理员用户看不到"管理"菜单项，管理员看到的是红色高亮的管理入口。
@@ -36,14 +33,6 @@ export function Navbar() {
   const { t, lang, setLang } = useLang();
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [menuOpen]);
 
   const mounted = useMounted();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
@@ -58,16 +47,11 @@ export function Navbar() {
   });
 
   const navItems = [
-    { href: "/", label: t("nav.home") },
-    { href: "/matches", label: t("nav.matches") },
-    { href: "/my-bets", label: t("nav.myBets") },
-    { href: "/leaderboard", label: t("nav.leaderboard") },
+    { href: "/", label: t("nav.home"), icon: "🏠" },
+    { href: "/matches", label: t("nav.matches"), icon: "⚽" },
+    { href: "/my-bets", label: t("nav.myBets"), icon: "📋" },
+    { href: "/leaderboard", label: t("nav.leaderboard"), icon: "🏆" },
   ];
-
-  const linkCls = (active: boolean) =>
-    `block px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-      active ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-50"
-    }`;
 
   const desktopLinkCls = (active: boolean) =>
     `px-2 py-1.5 rounded-md text-xs sm:text-sm transition ${
@@ -121,77 +105,44 @@ export function Navbar() {
           <div className="max-sm:[&_[data-rk]]:!max-w-[120px]">
             <ConnectButton showBalance={false} accountStatus="address" chainStatus="none" />
           </div>
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="sm:hidden p-1.5 -mr-1 text-slate-600"
-            aria-label={t("nav.menu")}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
-          </button>
         </div>
       </div>
 
-      {/* Mobile drawer — portal to body to avoid Safari backdrop-filter trapping */}
-      {mounted && menuOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] sm:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl flex flex-col">
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0">
-              <span className="font-bold text-blue-600 text-base">{t("app.title")}</span>
-              <button onClick={() => setMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-700">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            {/* User info */}
-            {mounted && isConnected && (
-              <div className="px-4 py-3 border-b border-slate-100 shrink-0">
-                {usdtBalance !== undefined && (
-                  <p className="text-sm text-green-700 font-semibold mb-1">
-                    {formatUSDT(usdtBalance as bigint, 4)} USDT
-                  </p>
-                )}
-                {!isAdminLoading && (
-                  <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                    isAdmin ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
-                  }`}>
-                    {isAdmin ? t("role.admin") : t("role.user")}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Nav links */}
-            <nav className="flex-1 overflow-y-auto overscroll-contain px-2 py-3">
-              {navItems.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={linkCls(pathname === link.href)}
-                >
+      {/* Mobile bottom tab bar */}
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-t border-slate-200 pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
+          {navItems.map((link) => {
+            const active = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex flex-col items-center justify-center gap-0.5 w-full h-full transition ${
+                  active ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                <span className="text-lg leading-none">{link.icon}</span>
+                <span className={`text-[10px] font-medium leading-none ${active ? "text-blue-600" : ""}`}>
                   {link.label}
-                </Link>
-              ))}
-              {mounted && isConnected && !isAdminLoading && isAdmin && (
-                <Link
-                  href="/admin"
-                  className={`${linkCls(pathname === "/admin")} mt-1 ${
-                    pathname === "/admin" ? "bg-red-50 text-red-700" : ""
-                  }`}
-                >
-                  {t("nav.admin")}
-                </Link>
-              )}
-            </nav>
-          </div>
-        </div>,
-        document.body
-      )}
+                </span>
+              </Link>
+            );
+          })}
+          {mounted && isConnected && !isAdminLoading && isAdmin && (
+            <Link
+              href="/admin"
+              className={`flex flex-col items-center justify-center gap-0.5 w-full h-full transition ${
+                pathname === "/admin" ? "text-red-600" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <span className="text-lg leading-none">⚙</span>
+              <span className={`text-[10px] font-medium leading-none ${pathname === "/admin" ? "text-red-600" : ""}`}>
+                {t("nav.admin")}
+              </span>
+            </Link>
+          )}
+        </div>
+      </div>
     </nav>
   );
 }
