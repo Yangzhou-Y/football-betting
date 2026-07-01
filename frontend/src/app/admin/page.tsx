@@ -290,6 +290,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
   const [mgmtSortNewest, setMgmtSortNewest] = useState(true);
   const [filterDate, setFilterDate] = useState("");
   const [filterTeam, setFilterTeam] = useState("");
+  const [mgmtJumpInput, setMgmtJumpInput] = useState("");
 
   const { writeContract, data: adminHash, isPending: isAdminPending, error: adminError } = useWriteContract();
   const { isSuccess: adminConfirmed } = useWaitForTxAndRefresh(adminHash);
@@ -382,7 +383,6 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
               type="text"
               value={filterTeam}
               onChange={(e) => { setFilterTeam(e.target.value); setMgmtPage(0); }}
-              placeholder={t("filter.teamPlaceholder")}
               className="px-2 py-1 rounded border border-slate-200 text-[10px] sm:text-xs bg-white w-28 sm:w-36 focus:outline-none focus:border-blue-400 transition"
             />
             {filterTeam && (
@@ -446,7 +446,16 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
         </table>
       </div>
       {mgmtTotalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 py-3 border-t border-slate-100">
+        <div className="flex items-center justify-center gap-2 py-3 border-t border-slate-100">
+          <button
+            onClick={() => setMgmtPage(0)}
+            disabled={safeMgmtPage === 0}
+            aria-label={t("page.first")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.first")}
+          >
+            «
+          </button>
           <button
             onClick={() => setMgmtPage((p) => Math.max(0, p - 1))}
             disabled={safeMgmtPage === 0}
@@ -455,7 +464,7 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
           >
             ←
           </button>
-          <span className="text-sm text-slate-500 tabular-nums">
+          <span className="text-sm text-slate-500 tabular-nums min-w-[80px] text-center">
             {safeMgmtPage + 1} / {mgmtTotalPages}
           </span>
           <button
@@ -465,6 +474,41 @@ function MatchManagement({ contractAddress, mgmtSectionRef }: { contractAddress:
             className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             →
+          </button>
+          <button
+            onClick={() => setMgmtPage(mgmtTotalPages - 1)}
+            disabled={safeMgmtPage >= mgmtTotalPages - 1}
+            aria-label={t("page.last")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.last")}
+          >
+            »
+          </button>
+          <span className="text-sm text-slate-400 mx-1">{t("page.jumpTo")}</span>
+          <input
+            type="number"
+            min={1}
+            max={mgmtTotalPages}
+            value={mgmtJumpInput}
+            onChange={(e) => setMgmtJumpInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const n = parseInt(mgmtJumpInput);
+                if (n >= 1 && n <= mgmtTotalPages) { setMgmtPage(n - 1); setMgmtJumpInput(""); }
+              }
+            }}
+            placeholder={`1-${mgmtTotalPages}`}
+            className="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-center bg-white focus:outline-none focus:border-blue-400 transition"
+          />
+          <button
+            onClick={() => {
+              const n = parseInt(mgmtJumpInput);
+              if (n >= 1 && n <= mgmtTotalPages) { setMgmtPage(n - 1); setMgmtJumpInput(""); }
+            }}
+            disabled={!mgmtJumpInput}
+            className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            {t("page.go")}
           </button>
         </div>
       )}

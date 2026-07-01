@@ -26,12 +26,15 @@
  */
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useMounted } from "@/hooks/useMounted";
 import { TableSkeleton, CardListSkeleton } from "@/components/shared/Skeleton";
 import { formatUSDT } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+
+const PAGE_SIZE = 20;
 
 /** 前三名奖牌图标（index 0=第1名金牌, 1=第2名银牌, 2=第3名铜牌） */
 const MEDAL_ICONS: Record<number, string> = {
@@ -71,10 +74,18 @@ export default function LeaderboardPage() {
   const mounted = useMounted();
   const { address } = useAccount();
   const { leaderboard, settledMatches, isLoading, isError, error, scanProgress } = useLeaderboard();
+  const [page, setPage] = useState(0);
+  const [jumpInput, setJumpInput] = useState("");
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
   if (!mounted) {
     return <div className="text-center py-20 text-slate-400">{t("common.loading")}</div>;
   }
+
+  const totalPages = Math.max(1, Math.ceil(leaderboard.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pagedLeaderboard = leaderboard.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -130,7 +141,7 @@ export default function LeaderboardPage() {
       {!isLoading && leaderboard.length > 0 && (
         <>
           {/* Desktop table */}
-          <div className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div key={`d-${safePage}`} className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-page-enter">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -144,14 +155,15 @@ export default function LeaderboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {leaderboard.map((entry, i) => {
+                {pagedLeaderboard.map((entry, i) => {
+                  const globalRank = safePage * PAGE_SIZE + i;
                   const isMe = address && entry.address === address.toLowerCase();
                   return (
                     <tr
                       key={entry.address}
                       className={`${isMe ? "bg-blue-50" : i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} hover:bg-slate-100 transition-colors`}
                     >
-                      <td className="text-center px-4 py-3"><RankBadge rank={i} /></td>
+                      <td className="text-center px-4 py-3"><RankBadge rank={globalRank} /></td>
                       <td className="px-4 py-3">
                         <span className={`font-mono text-xs ${isMe ? "text-blue-700 font-semibold" : "text-slate-700"}`}>
                           {entry.shortAddress}
@@ -173,14 +185,15 @@ export default function LeaderboardPage() {
           </div>
 
           {/* Mobile card list */}
-          <div className="sm:hidden space-y-2">
-            {leaderboard.map((entry, i) => {
+          <div key={`m-${safePage}`} className="sm:hidden space-y-2 animate-page-enter">
+            {pagedLeaderboard.map((entry, i) => {
+              const globalRank = safePage * PAGE_SIZE + i;
               const isMe = address && entry.address === address.toLowerCase();
               return (
                 <div key={entry.address} className={`rounded-xl p-3 border ${isMe ? "bg-blue-50 border-blue-200" : "bg-white border-slate-200"}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <RankBadge rank={i} />
+                      <RankBadge rank={globalRank} />
                       <span className={`font-mono text-xs ${isMe ? "text-blue-700 font-semibold" : "text-slate-700"}`}>
                         {entry.shortAddress}
                       </span>
@@ -197,6 +210,75 @@ export default function LeaderboardPage() {
               );
             })}
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 py-4">
+              <button
+                onClick={() => setPage(0)}
+                disabled={safePage === 0}
+                aria-label={t("page.first")}
+                className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                title={t("page.first")}
+              >
+                &laquo;
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={safePage === 0}
+                aria-label={t("page.prev")}
+                className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                &larr;
+              </button>
+              <span className="text-sm text-slate-500 tabular-nums min-w-[80px] text-center">
+                {safePage + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={safePage >= totalPages - 1}
+                aria-label={t("page.next")}
+                className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                &rarr;
+              </button>
+              <button
+                onClick={() => setPage(totalPages - 1)}
+                disabled={safePage >= totalPages - 1}
+                aria-label={t("page.last")}
+                className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                title={t("page.last")}
+              >
+                &raquo;
+              </button>
+              <span className="text-sm text-slate-400 mx-1">{t("page.jumpTo")}</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={jumpInput}
+                onChange={(e) => setJumpInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const n = parseInt(jumpInput);
+                    if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+                  }
+                }}
+                placeholder={`1-${totalPages}`}
+                className="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-center bg-white focus:outline-none focus:border-blue-400 transition"
+              />
+              <button
+                onClick={() => {
+                  const n = parseInt(jumpInput);
+                  if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+                }}
+                disabled={!jumpInput}
+                className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                {t("page.go")}
+              </button>
+            </div>
+          )}
+
           <p className="text-xs text-slate-400 text-center mt-4">{t("leaderboard.rankingBy")}</p>
         </>
       )}

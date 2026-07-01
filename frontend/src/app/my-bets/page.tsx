@@ -57,6 +57,7 @@ export default function MyBetsPage() {
   const [sortNewest, setSortNewest] = useState(true);
   const [filterDate, setFilterDate] = useState("");
   const [filterTeam, setFilterTeam] = useState("");
+  const [jumpInput, setJumpInput] = useState("");
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
 
@@ -192,7 +193,6 @@ export default function MyBetsPage() {
             type="text"
             value={filterTeam}
             onChange={(e) => { setFilterTeam(e.target.value); setPage(0); }}
-            placeholder={t("filter.teamPlaceholder")}
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white w-40 focus:outline-none focus:border-blue-400 transition"
           />
           {filterTeam && (
@@ -361,7 +361,16 @@ export default function MyBetsPage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 py-2">
+        <div className="flex items-center justify-center gap-2 py-4">
+          <button
+            onClick={() => setPage(0)}
+            disabled={safePage === 0}
+            aria-label={t("page.first")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.first")}
+          >
+            «
+          </button>
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={safePage === 0}
@@ -370,7 +379,7 @@ export default function MyBetsPage() {
           >
             ←
           </button>
-          <span className="text-sm text-slate-500 tabular-nums">
+          <span className="text-sm text-slate-500 tabular-nums min-w-[80px] text-center">
             {safePage + 1} / {totalPages}
           </span>
           <button
@@ -380,6 +389,41 @@ export default function MyBetsPage() {
             className="px-4 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             →
+          </button>
+          <button
+            onClick={() => setPage(totalPages - 1)}
+            disabled={safePage >= totalPages - 1}
+            aria-label={t("page.last")}
+            className="px-3 py-2 rounded-lg text-base border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            title={t("page.last")}
+          >
+            »
+          </button>
+          <span className="text-sm text-slate-400 mx-1">{t("page.jumpTo")}</span>
+          <input
+            type="number"
+            min={1}
+            max={totalPages}
+            value={jumpInput}
+            onChange={(e) => setJumpInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const n = parseInt(jumpInput);
+                if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+              }
+            }}
+            placeholder={`1-${totalPages}`}
+            className="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-center bg-white focus:outline-none focus:border-blue-400 transition"
+          />
+          <button
+            onClick={() => {
+              const n = parseInt(jumpInput);
+              if (n >= 1 && n <= totalPages) { setPage(n - 1); setJumpInput(""); }
+            }}
+            disabled={!jumpInput}
+            className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            {t("page.go")}
           </button>
         </div>
       )}

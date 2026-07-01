@@ -228,7 +228,6 @@ export default function MatchesPage() {
               type="text"
               value={filterTeam}
               onChange={(e) => { setFilterTeam(e.target.value); setPage(0); }}
-              placeholder={t("filter.teamPlaceholder")}
               className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white w-40 focus:outline-none focus:border-blue-400 transition"
             />
             {filterTeam && (
