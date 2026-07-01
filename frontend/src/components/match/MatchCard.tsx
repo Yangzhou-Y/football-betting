@@ -77,7 +77,7 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
       href={`/matches/${matchId}`}
       className="block bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-300 transition"
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <MatchStatusBadge status={status} deadline={match.deadline} />
           {showClaimable && (
@@ -90,15 +90,15 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
         <span className="text-xs text-slate-400 shrink-0">{formatTime(startTime, lang)}</span>
       </div>
 
-      {decodedName && (
-        <p className="text-xs text-slate-500 mb-2 text-center">{decodedName}</p>
-      )}
-
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <TeamNameDisplay hex={homeTeam} className="font-semibold" />
-        <span className="text-xs sm:text-sm text-slate-400 font-medium shrink-0">VS</span>
-        <TeamNameDisplay hex={awayTeam} flagAfter className="font-semibold" />
+      <div className="flex items-center justify-center gap-2 sm:gap-3 mb-1.5">
+        <TeamNameDisplay hex={homeTeam} className="font-bold text-lg sm:text-xl" />
+        <span className="text-xs sm:text-sm text-slate-300 font-semibold shrink-0">VS</span>
+        <TeamNameDisplay hex={awayTeam} flagAfter className="font-bold text-lg sm:text-xl" />
       </div>
+
+      {decodedName && (
+        <p className="text-[10px] sm:text-xs text-slate-400 mb-2.5 text-center">{decodedName}</p>
+      )}
 
       {status === MatchStatus.Settled && (
         <div className="text-center text-2xl font-bold mb-2 tabular-nums">
@@ -106,45 +106,51 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
         </div>
       )}
 
-      <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-2 whitespace-nowrap">
-        <span>{t("pool.label")} <span className="font-medium text-slate-700 tabular-nums">{formatUSDT(totalPool)} USDT</span></span>
+      <div className="text-center mb-2">
+        <span className="text-lg font-semibold text-slate-800 tabular-nums">{formatUSDT(totalPool)} USDT</span>
         {participantCount != null && participantCount > 0 && (
-          <span className="text-xs text-slate-400">· {participantCount} {t("card.participants")}</span>
+          <span className="text-xs text-slate-400 ml-1.5">· {participantCount} {t("card.participants")}</span>
         )}
       </div>
 
       {totalPool > 0n && (
         <>
-          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-            <div className="bg-blue-500" style={{ width: `${homePct}%` }} title={`${t("result.homeWin")} ${homePct}%`} />
+          <div className="flex h-3 sm:h-4 rounded-full overflow-hidden gap-0.5 mb-1.5">
+            <div className="relative bg-blue-500 flex items-center justify-center" style={{ width: `${homePct}%` }}>
+              {homePct >= 8 && <span className="text-[8px] sm:text-[10px] text-white font-bold pointer-events-none">{homePct}%</span>}
+            </div>
             {match.allowDraw !== false && (
-              <div className="bg-gray-400" style={{ width: `${drawPct}%` }} title={`${t("result.draw")} ${drawPct}%`} />
+              <div className="relative bg-gray-400 flex items-center justify-center" style={{ width: `${drawPct}%` }}>
+                {drawPct >= 8 && <span className="text-[8px] sm:text-[10px] text-white font-bold pointer-events-none">{drawPct}%</span>}
+              </div>
             )}
-            <div className="bg-red-400" style={{ width: `${awayPct}%` }} title={`${t("result.awayWin")} ${awayPct}%`} />
+            <div className="relative bg-red-400 flex items-center justify-center" style={{ width: `${awayPct}%` }}>
+              {awayPct >= 8 && <span className="text-[8px] sm:text-[10px] text-white font-bold pointer-events-none">{awayPct}%</span>}
+            </div>
           </div>
-          <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 mt-1.5 text-[10px]`}>
-            <span className="text-center text-blue-500">{t(RESULT_KEYS[Result.HomeWin])} {homeOdds ?? "-"}</span>
-            {match.allowDraw !== false && <span className="text-center text-slate-400">{t(RESULT_KEYS[Result.Draw])} {drawOdds ?? "-"}</span>}
-            <span className="text-center text-red-400">{t(RESULT_KEYS[Result.AwayWin])} {awayOdds ?? "-"}</span>
+          <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 text-xs`}>
+            <span className="text-center text-blue-600 font-medium">{t(RESULT_KEYS[Result.HomeWin])} {homeOdds ?? "-"}</span>
+            {match.allowDraw !== false && <span className="text-center text-slate-500 font-medium">{t(RESULT_KEYS[Result.Draw])} {drawOdds ?? "-"}</span>}
+            <span className="text-center text-red-500 font-medium">{t(RESULT_KEYS[Result.AwayWin])} {awayOdds ?? "-"}</span>
           </div>
         </>
       )}
 
       <div className="mt-3 text-center">
         {status === MatchStatus.Open && !deadlinePassed && countdown && (
-          <span className="text-sm text-amber-600 font-medium">⏳ {countdown}</span>
+          <span className="inline-block text-sm font-medium text-orange-700 bg-orange-50 px-3 py-1 rounded-full">⏳ {countdown}</span>
         )}
         {status === MatchStatus.Open && !deadlinePassed && !countdown && (
           <span className="text-sm text-blue-600 font-medium">🎯 {t("bet.bet")}</span>
         )}
         {status === MatchStatus.Open && deadlinePassed && (
-          <span className="text-sm text-orange-500">{t("match.status.deadlinePassed")}</span>
+          <span className="text-sm text-orange-500 font-medium">{t("match.status.deadlinePassed")}</span>
         )}
         {status === MatchStatus.Closed && (
-          <span className="text-sm text-yellow-600">{t("common.waitingForResult")}</span>
+          <span className="text-sm text-yellow-600 font-medium">{t("common.waitingForResult")}</span>
         )}
         {status === MatchStatus.Settled && (
-          <span className="text-sm text-slate-500">{t("common.viewDetails")}</span>
+          <span className="text-sm text-slate-500 font-medium">{t("common.viewDetails")} →</span>
         )}
       </div>
     </Link>
