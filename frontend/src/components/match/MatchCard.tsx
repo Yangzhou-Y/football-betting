@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { TeamNameDisplay } from "@/components/shared/TeamNameDisplay";
 import { MatchStatusBadge } from "@/components/shared/MatchStatusBadge";
@@ -33,6 +33,17 @@ import type { MatchStruct } from "@/lib/types";
  *   - 已投注徽章：橙色 + emoji 🔥 + animate-fire
  *   - 比例条：蓝(主胜)/灰(平局)/红(客胜)，宽度由奖池占比决定
  */
+function OddsTrend({ trend }: { trend: "up" | "down" | "same" }) {
+  if (trend === "up") return <span className="text-green-500 text-[10px] ml-0.5">↑</span>;
+  if (trend === "down") return <span className="text-red-400 text-[10px] ml-0.5">↓</span>;
+  return null;
+}
+
+function previewOdds(prev: string | null, current: string | null): "up" | "down" | "same" {
+  if (prev === null || current === null || prev === current) return "same";
+  return parseFloat(current) > parseFloat(prev) ? "up" : "down";
+}
+
 export function MatchCard({ match, matchId, hasBet, won, claimed, participantCount }: { match: MatchStruct; matchId: number; hasBet?: boolean; won?: boolean; claimed?: boolean; participantCount?: number }) {
   const t = useT();
   const { lang } = useLang();
@@ -43,6 +54,13 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
   const homeOdds = calcOdds(poolHome, totalPool, platformFeeRate);
   const drawOdds = calcOdds(poolDraw, totalPool, platformFeeRate);
   const awayOdds = calcOdds(poolAway, totalPool, platformFeeRate);
+
+  // Track odds trend direction since component mounted
+  const prevOdds = useRef<{ home: string | null; draw: string | null; away: string | null }>({ home: null, draw: null, away: null });
+  const homeTrend = previewOdds(prevOdds.current.home, homeOdds);
+  const drawTrend = previewOdds(prevOdds.current.draw, drawOdds);
+  const awayTrend = previewOdds(prevOdds.current.away, awayOdds);
+  prevOdds.current = { home: homeOdds, draw: drawOdds, away: awayOdds };
 
   const settled = status === MatchStatus.Settled;
   const showClaimable = hasBet && settled && won && !claimed;
@@ -115,7 +133,7 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
 
       {totalPool > 0n && (
         <>
-          <div className="flex h-3 sm:h-4 rounded-full overflow-hidden gap-0.5 mb-1.5">
+          <div className="flex h-3 sm:h-4 rounded-full overflow-hidden gap-0.5 mb-1.5 transition-all duration-500">
             <div className="relative bg-blue-500 flex items-center justify-center" style={{ width: `${homePct}%` }}>
               {homePct >= 8 && <span className="text-[8px] sm:text-[10px] text-white font-bold pointer-events-none">{homePct}%</span>}
             </div>
@@ -129,9 +147,9 @@ export function MatchCard({ match, matchId, hasBet, won, claimed, participantCou
             </div>
           </div>
           <div className={`grid ${match.allowDraw !== false ? "grid-cols-3" : "grid-cols-2"} gap-1 text-xs`}>
-            <span className="text-center text-blue-600 font-medium">{t(RESULT_KEYS[Result.HomeWin])} {homeOdds ?? "-"}</span>
-            {match.allowDraw !== false && <span className="text-center text-slate-500 font-medium">{t(RESULT_KEYS[Result.Draw])} {drawOdds ?? "-"}</span>}
-            <span className="text-center text-red-500 font-medium">{t(RESULT_KEYS[Result.AwayWin])} {awayOdds ?? "-"}</span>
+            <span className="text-center text-blue-600 font-medium">{t(RESULT_KEYS[Result.HomeWin])} {homeOdds ?? "-"}<OddsTrend trend={homeTrend} /></span>
+            {match.allowDraw !== false && <span className="text-center text-slate-500 font-medium">{t(RESULT_KEYS[Result.Draw])} {drawOdds ?? "-"}<OddsTrend trend={drawTrend} /></span>}
+            <span className="text-center text-red-500 font-medium">{t(RESULT_KEYS[Result.AwayWin])} {awayOdds ?? "-"}<OddsTrend trend={awayTrend} /></span>
           </div>
         </>
       )}

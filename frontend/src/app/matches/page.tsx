@@ -68,6 +68,7 @@ export default function MatchesPage() {
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [sortNewest, setSortNewest] = useState(true);
+  const [sortMode, setSortMode] = useState<"time" | "pool">("time");
   const [filterDate, setFilterDate] = useState("");
   const [filterTeam, setFilterTeam] = useState("");
   const [jumpInput, setJumpInput] = useState("");
@@ -158,7 +159,13 @@ export default function MatchesPage() {
   });
 
   filtered.sort((a, b) => {
-    const cmp = Number(a.match.startTime - b.match.startTime);
+    let cmp: number;
+    if (sortMode === "pool") {
+      cmp = Number(a.match.totalPool - b.match.totalPool);
+      if (cmp === 0) cmp = Number(a.match.startTime - b.match.startTime);
+    } else {
+      cmp = Number(a.match.startTime - b.match.startTime);
+    }
     return sortNewest ? -cmp : cmp;
   });
 
@@ -195,12 +202,31 @@ export default function MatchesPage() {
             </button>
           ))}
           <div className="flex-1" />
-          <button
-            onClick={() => { setSortNewest((v) => !v); setPage(0); }}
-            className="px-3 py-1.5 rounded-full text-sm bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
-          >
-            {sortNewest ? t("sort.newest") : t("sort.oldest")} ⇅
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* sort mode selector */}
+            <div className="flex rounded-full bg-white border border-slate-200 overflow-hidden">
+              <button
+                onClick={() => { setSortMode("time"); setPage(0); }}
+                className={`px-2.5 py-1.5 text-xs transition ${sortMode === "time" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                {t("sort.byTime")}
+              </button>
+              <button
+                onClick={() => { setSortMode("pool"); setPage(0); }}
+                className={`px-2.5 py-1.5 text-xs transition border-l border-slate-200 ${sortMode === "pool" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                {t("sort.byPool")}
+              </button>
+            </div>
+            {/* direction toggle */}
+            <button
+              onClick={() => { setSortNewest((v) => !v); setPage(0); }}
+              className="px-2.5 py-1.5 rounded-full text-xs bg-white text-slate-600 border border-slate-200 hover:border-blue-300 transition"
+              title={sortNewest ? t("sort.desc") : t("sort.asc")}
+            >
+              {sortNewest ? t("sort.desc") : t("sort.asc")} ⇅
+            </button>
+          </div>
         </div>
 
         {/* Row 2: date filter + team search */}
