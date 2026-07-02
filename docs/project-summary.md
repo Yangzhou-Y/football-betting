@@ -15,7 +15,7 @@
 | 层级 | 技术 | 选型理由 |
 |------|------|------|
 | 智能合约 | Solidity 0.8.21 + Hardhat | 行业标准工具链，完善的测试和部署支持 |
-| 支付代币 | Faucet USDT (ERC-20) | 世界杯场景下用户群体广泛，Faucet USDT 法币锚定降低认知门槛，适配 Conflux 测试网，用户可自己 mint |
+| 支付代币 | Faucet USDT (ERC-20) | Conflux 测试网可免费领取，用户可自己 mint |
 | 前端框架 | Next.js 16 + React 19 + TypeScript | App Router 服务端渲染，Vercel 原生支持 |
 | 钱包连接 | wagmi v2 + RainbowKit v2 + viem | 开箱即用的多钱包支持，维护了 MetaMask 专用检测逻辑 |
 | 样式 | Tailwind CSS v4 | 原子化 CSS，响应式开发效率极高 |
