@@ -15,7 +15,7 @@
 | 层级 | 技术 | 选型理由 |
 |------|------|------|
 | 智能合约 | Solidity 0.8.21 + Hardhat | 行业标准工具链，完善的测试和部署支持 |
-| 支付代币 | USDT (ERC-20) | 世界杯场景下用户群体广泛，USDT 法币锚定降低认知门槛 |
+| 支付代币 | Faucet USDT (ERC-20) | 世界杯场景下用户群体广泛，Faucet USDT 法币锚定降低认知门槛，适配 Conflux 测试网，用户可自己 mint |
 | 前端框架 | Next.js 16 + React 19 + TypeScript | App Router 服务端渲染，Vercel 原生支持 |
 | 钱包连接 | wagmi v2 + RainbowKit v2 + viem | 开箱即用的多钱包支持，维护了 MetaMask 专用检测逻辑 |
 | 样式 | Tailwind CSS v4 | 原子化 CSS，响应式开发效率极高 |
@@ -35,14 +35,13 @@
 
 ## 四、关键技术决策
 
-### 4.1 为什么用 USDT 而不是原生币？
+### 4.1 为什么用 Faucet USDT 而不是原生币？
 
-最初考虑直接收 ETH/CFX 作为投注代币（简单，一行 `msg.value` 搞定），但两个因素促成了 USDT 方案：
+最初考虑直接收 ETH/CFX 作为投注代币（简单，一行 `msg.value` 搞定），但两个因素促成了 Faucet USDT 方案：
 
 - **用户认知**：普通球迷对"0.001 ETH"没有概念，但知道"10 USDT = 10 美元"。降低参与门槛比省一行代码更重要。
 - **波动风险**：比赛周期可能长达数周，原生币价格波动会导致奖池实际购买力剧烈变化，USDT 的锚定特性更稳定。
-
-代价：USDT 需要用户先 `approve` 再 `transferFrom`，比原生币多一步交互和多约 3 万 gas。
+- **结合环境**：合约部署在 Conflux eSpace 测试网，而 Faucet USDT 为树图测试网通用货币，用户无需新导入货币，用现有 Faucet USDT 便可无缝使用本项目，也可根据自身需求自己 mint。
 
 ### 4.2 为什么用 Conflux eSpace 测试网？
 
