@@ -217,3 +217,7 @@ ADMIN_ACTION=remove ADMIN_ADDRESS=0x... npx hardhat run scripts/admin.ts --netwo
 - `settled` 标记防重复结算
 - 自定义错误 — 精确匹配 revert 原因，前端友好提示
 - 无 `receive()`/`fallback()` — 误发原生币自动 revert
+
+## 特别感谢
+
+### 特别感谢邱老师和 Conflux 的大家们，作为我的第一次实习，让我找到了家一样的感觉。工作上循循善诱不吝赐教，闲暇时待如至亲无所保留；公司也没有因为我是实习生就忽视我一分一毫，期间父亲节、端午节和生日福利次次不落下，令我受宠若惊。能在 Conflux 实现工作经历从 0 到 1 的跨越，我感到非常荣幸与喜悦。再次向邱老师和 Conflux 的大家们致以由衷的感谢。住大家身体健康、事业顺利；也祝 Conflux 行稳致远、再创佳绩！
