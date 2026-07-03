@@ -1,4 +1,4 @@
-# 项目历程 — FootballBetting DApp
+# 完整项目历程 — FootballBetting DApp
 
 > 记录从立项到上线的关键节点和重要决策
 
